@@ -23,7 +23,6 @@ import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
@@ -35,13 +34,15 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class PDFMerge {
 
-    protected BlobList blobs;
+    protected BlobList blobs = new BlobList();
 
     public PDFMerge(Blob inBlob) {
         addBlob(inBlob);
     }
 
     public void addBlob(Blob inBlob) {
+        blobs.add(inBlob);
+        /*
         if (inBlob != null) {
             if ("application/pdf".equals(inBlob.getMimeType())) {
                 blobs.add(inBlob);
@@ -51,6 +52,7 @@ public class PDFMerge {
                         + ">)");
             }
         }
+        */
     }
 
     public void addBlob(DocumentModel inDoc) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright ${year} Nuxeo SA (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     thibaud
+ *     Thibaud Arguillere
  */
 
 package org.nuxeo.pdf;
@@ -36,8 +36,8 @@ import org.nuxeo.ecm.core.api.Blob;
  * (1) blobToAppendVarName, if used, then (2) toAppendListVarName if used
  *
  */
-@Operation(id = MergePDFsOp.ID, category = Constants.CAT_CONVERSION, label = "Merge PDFs", description = "The input blob(s) always is(are) the first PDFs. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable, then, appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
-public class MergePDFsOp {
+@Operation(id = MergePDFsWithBlobsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Blob(s): Merge PDFs", description = "The input blob(s) always is(are) the first PDFs. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
+public class MergePDFsWithBlobsInputOp {
 
     public static final String ID = "Blob.MergePDFs";
 
