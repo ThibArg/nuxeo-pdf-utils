@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
@@ -32,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
@@ -269,9 +271,13 @@ public class PDFUtilsTest {
 
     }
 
-    protected void checkMergedPDF(File inPDF) throws IOException {
+    protected void checkMergedPDF(Blob inBlob) throws IOException {
 
-        PDDocument doc = PDDocument.load(inPDF);
+        File tempFile = File.createTempFile("testmergepdf", ".pdf");
+        createdTempFiles.add(tempFile);
+        inBlob.transferTo(tempFile);
+
+        PDDocument doc = PDDocument.load(tempFile);
         assertNotNull(doc);
         createdPDDocs.add(doc);
 
@@ -291,10 +297,17 @@ public class PDFUtilsTest {
         doc.close();
         createdPDDocs.remove(doc);
 
+
+        tempFile.delete();
+        createdTempFiles.remove(tempFile);
+
     }
 
+    /*
+     * Test PDFMerge constructor with simple blobs
+     */
     @Test
-    public void testMergePDFs() throws Exception {
+    public void testMergePDFs_1() throws Exception {
 
         FileBlob fb;
 
@@ -306,17 +319,31 @@ public class PDFUtilsTest {
         fb = new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_3) );
         pdfm.addBlob(fb);
 
-        Blob result = pdfm.merge("merged.pdf");
+        Blob result = pdfm.merge("merged1.pdf");
         assertNotNull(result);
 
-        File tempFile = File.createTempFile("testmergepdf", ".pdf");
-        createdTempFiles.add(tempFile);
-        result.transferTo(tempFile);
+        checkMergedPDF(result);
+    }
 
-        checkMergedPDF(tempFile);
+    /*
+     * Test PDFMerge constructor with BlobList
+     */
+    @Test
+    public void testMergePDFs_2() throws Exception {
 
-        tempFile.delete();
-        createdTempFiles.remove(tempFile);
+        BlobList bl = new BlobList();
+
+        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_1) ) );
+        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_2) ) );
+        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_3) ) );
+
+        PDFMerge pdfm = new PDFMerge(bl);
+
+        Blob result = pdfm.merge("merged2.pdf");
+        assertNotNull(result);
+
+        checkMergedPDF(result);
+
     }
 
     @Test

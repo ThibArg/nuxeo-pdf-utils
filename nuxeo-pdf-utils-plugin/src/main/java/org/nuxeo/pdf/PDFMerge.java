@@ -24,6 +24,7 @@ import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
 
@@ -36,16 +37,36 @@ public class PDFMerge {
 
     protected BlobList blobs = new BlobList();
 
+    /*
+     * Constructors accept a blob, a list of blobs, a DocumentModel, or a list of DocumentModels
+     */
     public PDFMerge(Blob inBlob) {
         addBlob(inBlob);
     }
 
+    public PDFMerge(BlobList inBlobs) {
+        addBlobs(inBlobs);
+    }
+
+    public PDFMerge(DocumentModel inDoc, String inXPath) {
+        addBlob(inDoc, inXPath);
+    }
+
+    public PDFMerge(DocumentModelList inDocs, String inXPath) {
+        addBlobs(inDocs, inXPath);
+    }
+
+
+
+    /*
+     * Appending accepts a single blob, a list of blobs, a single DocumentModel, or a list of DocumentModels
+     */
     public void addBlob(Blob inBlob) {
         blobs.add(inBlob);
     }
 
-    public void addBlob(DocumentModel inDoc) {
-        addBlob(inDoc, "file:content");
+    public void addBlobs(BlobList inBlobs) {
+        blobs.addAll(inBlobs);
     }
 
     public void addBlob(DocumentModel inDoc, String inXPath) {
@@ -56,6 +77,16 @@ public class PDFMerge {
         addBlob((Blob) inDoc.getPropertyValue(inXPath));
     }
 
+    public void addBlobs(DocumentModelList inDocs, String inXPath) {
+
+        for(DocumentModel doc : inDocs) {
+            addBlob(doc, inXPath);
+        }
+    }
+
+    /*
+     * Now we can merge ;->
+     */
     public Blob merge(String inFileName) throws IOException, COSVisitorException {
 
         Blob finalBlob = null;
