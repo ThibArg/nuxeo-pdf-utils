@@ -36,6 +36,9 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -72,10 +75,13 @@ public class PDFUtilsTest {
     protected String md5OfThePdf;
 
     protected ArrayList<PDDocument> createdPDDocs = new ArrayList<PDDocument>();
+
     protected ArrayList<File> createdTempFiles = new ArrayList<File>();
 
     // For visually testing the result
     public boolean kDO_LOCAL_TEST_EXPORT_DESKTOP = false;
+
+    protected DocumentModel testDocsFolder, docMergePDF1, docMergePDF2, docMergePDF3;
 
     @Inject
     CoreSession coreSession;
@@ -128,7 +134,8 @@ public class PDFUtilsTest {
     /*
      * Utility. Extract the text in the given page(s)
      */
-    protected String extractText(PDDocument inDoc, int startPage, int inEndPage) throws IOException {
+    protected String extractText(PDDocument inDoc, int startPage, int inEndPage)
+            throws IOException {
 
         String txt = "";
 
@@ -158,11 +165,36 @@ public class PDFUtilsTest {
         createdPDDocs.remove(doc);
     }
 
+    protected DocumentModel createMergePDFDocument(String inWHichOne) {
+
+        File f = FileUtils.getResourceFileFromContext(inWHichOne);
+
+        DocumentModel doc = coreSession.createDocumentModel(
+                testDocsFolder.getPathAsString(), f.getName(), "File");
+        doc.setPropertyValue("dc:title", f.getName());
+        doc.setPropertyValue("file:content", new FileBlob(f));
+        return coreSession.createDocument(doc);
+
+    }
+
     @Before
     public void setup() throws IOException {
 
-        pdfFile = FileUtils.getResourceFileFromContext(THE_PDF);
+        assertNotNull(coreSession);
+        assertNotNull(automationService);
 
+        testDocsFolder = coreSession.createDocumentModel("/",
+                "test-pictures", "Folder");
+        testDocsFolder.setPropertyValue("dc:title", "test-pdfutils");
+        testDocsFolder = coreSession.createDocument(testDocsFolder);
+        testDocsFolder = coreSession.saveDocument(testDocsFolder);
+
+        docMergePDF1 = createMergePDFDocument(MERGEPDF_1);
+        docMergePDF2 = createMergePDFDocument(MERGEPDF_2);
+        docMergePDF3 = createMergePDFDocument(MERGEPDF_3);
+
+
+        pdfFile = FileUtils.getResourceFileFromContext(THE_PDF);
         md5OfThePdf = getFileMd5(pdfFile);
         pdfFileBlob = new FileBlob(pdfFile);
         checkPDFBeforeTest();
@@ -171,10 +203,13 @@ public class PDFUtilsTest {
     @After
     public void cleanup() {
 
+        coreSession.removeDocument(testDocsFolder.getRef());
+        coreSession.save();
+
         try {
 
             for (PDDocument pdfDoc : createdPDDocs) {
-                    pdfDoc.close();
+                pdfDoc.close();
             }
 
             for (File f : createdTempFiles) {
@@ -271,6 +306,10 @@ public class PDFUtilsTest {
 
     }
 
+    /*
+     * We chjeck the pdf is in the correct order. Each pdf file used has a text
+     * telling us where it should have been merged
+     */
     protected void checkMergedPDF(Blob inBlob) throws IOException {
 
         File tempFile = File.createTempFile("testmergepdf", ".pdf");
@@ -286,17 +325,16 @@ public class PDFUtilsTest {
 
         String txt;
         txt = extractText(doc, 1, 1);
-        assertTrue( txt.indexOf(MERGEPDF_CHECK_PREFIX + "1") > -1 );
+        assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "1") > -1);
 
         txt = extractText(doc, 3, 3);
-        assertTrue( txt.indexOf(MERGEPDF_CHECK_PREFIX + "2") > -1 );
+        assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "2") > -1);
 
         txt = extractText(doc, 6, 6);
-        assertTrue( txt.indexOf(MERGEPDF_CHECK_PREFIX + "3") > -1 );
+        assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "3") > -1);
 
         doc.close();
         createdPDDocs.remove(doc);
-
 
         tempFile.delete();
         createdTempFiles.remove(tempFile);
@@ -307,16 +345,17 @@ public class PDFUtilsTest {
      * Test PDFMerge constructor with simple blobs
      */
     @Test
-    public void testMergePDFs_1() throws Exception {
+    public void testMergePDFs_ConstructorSimpleBlobs() throws Exception {
 
         FileBlob fb;
 
-        FileBlob first = new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_1) );
+        FileBlob first = new FileBlob(
+                FileUtils.getResourceFileFromContext(MERGEPDF_1));
         PDFMerge pdfm = new PDFMerge(first);
 
-        fb = new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_2) );
+        fb = new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2));
         pdfm.addBlob(fb);
-        fb = new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_3) );
+        fb = new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3));
         pdfm.addBlob(fb);
 
         Blob result = pdfm.merge("merged1.pdf");
@@ -329,13 +368,13 @@ public class PDFUtilsTest {
      * Test PDFMerge constructor with BlobList
      */
     @Test
-    public void testMergePDFs_2() throws Exception {
+    public void testMergePDFs_ConstructorBlobList() throws Exception {
 
         BlobList bl = new BlobList();
 
-        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_1) ) );
-        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_2) ) );
-        bl.add( new FileBlob( FileUtils.getResourceFileFromContext(MERGEPDF_3) ) );
+        bl.add(new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_1)));
+        bl.add(new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
+        bl.add(new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
 
         PDFMerge pdfm = new PDFMerge(bl);
 
@@ -347,10 +386,39 @@ public class PDFUtilsTest {
     }
 
     @Test
+    public void testMergePDFs_ConstructorSimpleDoc() throws Exception {
+
+        PDFMerge pdfm = new PDFMerge(docMergePDF1, null);
+        pdfm.addBlob(docMergePDF2, null);
+        pdfm.addBlob(docMergePDF3, "");
+
+        Blob result = pdfm.merge("merged1.pdf");
+        assertNotNull(result);
+
+        checkMergedPDF(result);
+    }
+
+    @Test
+    public void testMergePDFs_ConstructorDocList() throws Exception {
+
+        DocumentModelList docList = new DocumentModelListImpl();
+
+        docList.add(docMergePDF1);
+        docList.add(docMergePDF2);
+        docList.add(docMergePDF3);
+
+        PDFMerge pdfm = new PDFMerge(docList, null);
+
+        Blob result = pdfm.merge("merged1.pdf");
+        assertNotNull(result);
+
+        checkMergedPDF(result);
+    }
+
+    @Test
     public void testMergePDFsOperation() throws Exception {
 
-        //Test with blobs
-
+        // Test with blobs
 
         // Test with documents
 
