@@ -31,7 +31,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.pdf.PDFUtils.PAGE_NUMBER_POSITION;
 
 /**
- *
+ * Add page numbers to the pDF
  */
 @Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "Add Page Numbers to PDF", description = "")
 public class AddPageNumbersOp {

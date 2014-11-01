@@ -42,17 +42,6 @@ public class PDFMerge {
 
     public void addBlob(Blob inBlob) {
         blobs.add(inBlob);
-        /*
-        if (inBlob != null) {
-            if ("application/pdf".equals(inBlob.getMimeType())) {
-                blobs.add(inBlob);
-            } else {
-                throw new ClientException("Blob " + inBlob.getFilename()
-                        + " is not a pdf (mimeType is <" + inBlob.getMimeType()
-                        + ">)");
-            }
-        }
-        */
     }
 
     public void addBlob(DocumentModel inDoc) {
