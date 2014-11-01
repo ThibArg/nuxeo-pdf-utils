@@ -8,5 +8,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ManifestVersion: 2
 Bundle-Vendor: Nuxeo
 Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.AddPageNumbersOp.xm
- l
+ l,OSGI-INF/extensions/org.nuxeo.pdf.MergePDFsOp.xml
 

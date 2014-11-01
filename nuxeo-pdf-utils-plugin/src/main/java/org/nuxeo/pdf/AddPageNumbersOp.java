@@ -33,7 +33,7 @@ import org.nuxeo.pdf.PDFUtils.PAGE_NUMBER_POSITION;
 /**
  *
  */
-@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_SERVICES, label = "Add Page Numbers to PDF", description = "")
+@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "Add Page Numbers to PDF", description = "")
 public class AddPageNumbersOp {
 
     public static final String ID = "PDF.AddPageNumbers";
