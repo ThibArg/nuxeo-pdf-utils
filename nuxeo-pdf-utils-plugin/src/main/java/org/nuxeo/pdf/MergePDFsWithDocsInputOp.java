@@ -17,8 +17,9 @@
 
 package org.nuxeo.pdf;
 
+import java.io.IOException;
+import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.nuxeo.ecm.automation.AutomationService;
-import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -35,7 +36,7 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 /**
  *
  */
-@Operation(id=MergePDFsWithDocsInputOp.ID, category=Constants.CAT_CONVERSION, label="Document(s): Merge PDFs", description="The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
+@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Document(s): Merge PDFs", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
 public class MergePDFsWithDocsInputOp {
 
     public static final String ID = "Document.MergePDFs";
@@ -49,7 +50,7 @@ public class MergePDFsWithDocsInputOp {
     @Context
     protected AutomationService autService;
 
-    @Param(name = "xpath", required = false, values = {"file:content"})
+    @Param(name = "xpath", required = false, values = { "file:content" })
     String xpath = "file:content";
 
     @Param(name = "toAppendVarName", required = false)
@@ -64,37 +65,41 @@ public class MergePDFsWithDocsInputOp {
     @OperationMethod
     public Blob run(DocumentModel inDoc) throws ClientException {
 
-        Blob blob = (Blob) inDoc.getPropertyValue(xpath);
+        PDFMerge pdfm = new PDFMerge(inDoc, xpath);
 
-        return doMerge(blob);
+        return doMerge(pdfm);
     }
 
     @OperationMethod
     public Blob run(DocumentModelList inDocs) throws ClientException {
 
-        BlobList blobs = new BlobList();
+        PDFMerge pdfm = new PDFMerge(inDocs, xpath);
 
-        for(DocumentModel doc : inDocs) {
-            blobs.add( (Blob) doc.getPropertyValue(xpath) );
-        }
-
-        return doMerge(blobs);
+        return doMerge(pdfm);
     }
 
-    protected Blob doMerge(Object input) throws ClientException {
+    protected Blob doMerge(PDFMerge inMergeTool) throws ClientException {
 
-        OperationContext ctx = new OperationContext(session);
-        ctx.setInput(input);
+        if (toAppendVarName != null && !toAppendVarName.isEmpty()) {
+            inMergeTool.addBlob((Blob) ctx.get(toAppendVarName));
+        }
 
-        OperationChain chain = new OperationChain("MergePDFsFromDocs");
-        chain.add(MergePDFsWithBlobsInputOp.ID)
-                .set("toAppendVarName", ctx.get("toAppendVarName"))
-                .set("toAppendListVarName", ctx.get("toAppendListVarName"))
-                .set("fileName", ctx.get("fileName"));
+        // Add the blob list
+        if (toAppendListVarName != null && !toAppendListVarName.isEmpty()) {
 
+            if (ctx.get(toAppendListVarName) instanceof BlobList) {
+                inMergeTool.addBlobs((BlobList) ctx.get(toAppendListVarName));
+            } else {
+                throw new ClientException(
+                        ctx.get(toAppendListVarName).getClass()
+                                + " is not a Collection");
+            }
+        }
+
+        // Merge
         try {
-            return (Blob) autService.run(ctx, chain);
-        } catch (Exception e) {
+            return inMergeTool.merge(fileName);
+        } catch (COSVisitorException | IOException e) {
             throw new ClientException(e);
         }
     }

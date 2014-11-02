@@ -18,8 +18,6 @@
 package org.nuxeo.pdf;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.nuxeo.ecm.automation.OperationContext;
@@ -30,6 +28,7 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.ClientException;
 
 /**
  * The blob(s) in input will always be the first blob(s), to which we append:
@@ -54,7 +53,7 @@ public class MergePDFsWithBlobsInputOp {
     protected String fileName;
 
     @OperationMethod
-    public Blob run(Blob inBlob) throws COSVisitorException, IOException {
+    public Blob run(Blob inBlob) throws ClientException {
 
         PDFMerge pdfm = new PDFMerge(inBlob);
 
@@ -62,7 +61,7 @@ public class MergePDFsWithBlobsInputOp {
     }
 
     @OperationMethod
-    public Blob run(BlobList inBlobs) throws COSVisitorException, IOException {
+    public Blob run(BlobList inBlobs) throws ClientException {
 
         PDFMerge pdfm = new PDFMerge(inBlobs.get(0));
         int max = inBlobs.size();
@@ -73,7 +72,7 @@ public class MergePDFsWithBlobsInputOp {
         return doMerge(pdfm);
     }
 
-    protected Blob doMerge(PDFMerge inMergeTool) throws COSVisitorException, IOException {
+    protected Blob doMerge(PDFMerge inMergeTool) throws ClientException {
 
         // The first blob(s) has(have) already been added
 
@@ -85,23 +84,20 @@ public class MergePDFsWithBlobsInputOp {
         // Add the blob list
         if (toAppendListVarName != null && !toAppendListVarName.isEmpty()) {
 
-            Collection<?> list = null;
-            if (ctx.get(toAppendListVarName) instanceof Object[]) {
-                list = Arrays.asList((Object[]) ctx.get(toAppendListVarName));
-            } else if (ctx.get(toAppendListVarName) instanceof Collection<?>) {
-                list = (Collection<?>) ctx.get(toAppendListVarName);
+            if (ctx.get(toAppendListVarName) instanceof BlobList) {
+                inMergeTool.addBlobs((BlobList) ctx.get(toAppendListVarName));
             } else {
-                throw new UnsupportedOperationException(
+                throw new ClientException(
                         ctx.get(toAppendListVarName).getClass()
                                 + " is not a Collection");
-            }
-
-            for (Object value : list) {
-                inMergeTool.addBlob((Blob) value);
             }
         }
 
         // Merge
-        return inMergeTool.merge(fileName);
+        try {
+            return inMergeTool.merge(fileName);
+        } catch (COSVisitorException | IOException e) {
+            throw new ClientException(e);
+        }
     }
 }
