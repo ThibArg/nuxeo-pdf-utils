@@ -9,5 +9,6 @@ Bundle-ManifestVersion: 2
 Bundle-Vendor: Nuxeo
 Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.AddPageNumbersOp.xm
  l,OSGI-INF/extensions/org.nuxeo.pdf.MergePDFsWithBlobsInputOp.xml,OSG
- I-INF/extensions/org.nuxeo.pdf.MergePDFsWithDocsInputOp.xml
+ I-INF/extensions/org.nuxeo.pdf.MergePDFsWithDocsInputOp.xml,OSGI-INF/
+ extensions/org.nuxeo.pdf.PDFInfoToFields.xml
 
