@@ -121,12 +121,13 @@ public class PDFMerge {
      *
      * inTitle, inAuthor and inSubject are optional
      */
-    public Blob merge(String inFileName) throws COSVisitorException, IOException {
+    public Blob merge(String inFileName) throws COSVisitorException,
+            IOException {
         return merge(inFileName, null, null, null);
     }
 
-    public Blob merge(String inFileName, String inTitle, String inAuthor,
-            String inSubject) throws IOException, COSVisitorException {
+    public Blob merge(String inFileName, String inTitle, String inSubject,
+            String inAuthor) throws IOException, COSVisitorException {
 
         Blob finalBlob = null;
 
