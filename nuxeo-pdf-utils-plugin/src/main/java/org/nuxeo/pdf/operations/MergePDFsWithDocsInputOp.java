@@ -36,9 +36,27 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.pdf.PDFMerge;
 
 /**
- *
+ * The input document(s) always is(are) the first PDF(s), and each pdf is read
+ * in the <code>xpath</code> field. If
+ * <code>xpath</xpath>, it is set to the default value <code>file:content</code>
+ * <p>
+ * The operation appends:
+ * <ul>
+ * <li>First, The blob referenced in the <code>toAppendVarName</code> Context
+ * variable.</li>
+ * <li>Then, it appends all the blobs stored in the
+ * <code>toAppendListVarName</code> Context variable</li>
+ * <li>And last, it appends the blobs stored in the docs whose IDs are passed in
+ * <code>toAppendDocIDsVarName</code>, using the <code>xpath</code> parameter</li>
+ * </ul>
+ * <p>
+ * All variable names are optional: You can pass only
+ * <code>toAppendVarName</code>, or <code>toAppendVarName</code> and
+ * <code>toAppendDocIDsVarName</code>, or ...
+ * <p>
+ * Returns the final pdf.
  */
-@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Document(s): Merge PDFs", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
+@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Document(s): Merge PDFs", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. It then append the blobs stored in the docs whose IDs are passed in <code>toAppendDocIDsVarName</code> (the same <code>xpath</code> is used). Returns the final pdf.")
 public class MergePDFsWithDocsInputOp {
 
     public static final String ID = "Document.MergePDFs";
@@ -61,6 +79,9 @@ public class MergePDFsWithDocsInputOp {
     @Param(name = "toAppendListVarName", required = false)
     protected String toAppendListVarName;
 
+    @Param(name = "toAppendDocIDsVarName", required = false)
+    protected String toAppendDocIDsVarName;
+
     @Param(name = "fileName", required = false)
     protected String fileName;
 
@@ -82,11 +103,12 @@ public class MergePDFsWithDocsInputOp {
 
     protected Blob doMerge(PDFMerge inMergeTool) throws ClientException {
 
+        // Append the single blob
         if (toAppendVarName != null && !toAppendVarName.isEmpty()) {
             inMergeTool.addBlob((Blob) ctx.get(toAppendVarName));
         }
 
-        // Add the blob list
+        // Append the blob list
         if (toAppendListVarName != null && !toAppendListVarName.isEmpty()) {
 
             if (ctx.get(toAppendListVarName) instanceof BlobList) {
@@ -95,6 +117,18 @@ public class MergePDFsWithDocsInputOp {
                 throw new ClientException(
                         ctx.get(toAppendListVarName).getClass()
                                 + " is not a Collection");
+            }
+        }
+
+        // Append a list of Documents via their IDs
+        if (toAppendDocIDsVarName != null && !toAppendDocIDsVarName.isEmpty()) {
+            if (ctx.get(toAppendDocIDsVarName) instanceof String[]) {
+                inMergeTool.addBlobs((String[]) ctx.get(toAppendDocIDsVarName),
+                        xpath, session);
+            } else {
+                throw new ClientException(
+                        ctx.get(toAppendDocIDsVarName).getClass()
+                                + " is not a String[]");
             }
         }
 

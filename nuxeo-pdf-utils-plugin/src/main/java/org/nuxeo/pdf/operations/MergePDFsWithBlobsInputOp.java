@@ -77,12 +77,12 @@ public class MergePDFsWithBlobsInputOp {
 
         // The first blob(s) has(have) already been added
 
-        // Add the simple blob
+        // Append the single blob
         if (toAppendVarName != null && !toAppendVarName.isEmpty()) {
             inMergeTool.addBlob((Blob) ctx.get(toAppendVarName));
         }
 
-        // Add the blob list
+        // Append the blob list
         if (toAppendListVarName != null && !toAppendListVarName.isEmpty()) {
 
             if (ctx.get(toAppendListVarName) instanceof BlobList) {

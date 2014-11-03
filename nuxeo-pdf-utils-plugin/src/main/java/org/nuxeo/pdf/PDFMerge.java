@@ -23,8 +23,10 @@ import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
 
@@ -56,6 +58,11 @@ public class PDFMerge {
         addBlobs(inDocs, inXPath);
     }
 
+    // The original usecase actually :-)
+    public PDFMerge(String[] inDocIDs, String inXPath, CoreSession inSession) {
+        addBlobs(inDocIDs, inXPath, inSession);
+    }
+
 
 
     /*
@@ -80,6 +87,13 @@ public class PDFMerge {
     public void addBlobs(DocumentModelList inDocs, String inXPath) {
 
         for(DocumentModel doc : inDocs) {
+            addBlob(doc, inXPath);
+        }
+    }
+
+    public void addBlobs(String [] inDocIDs, String inXPath, CoreSession inSession) {
+        for(String id : inDocIDs) {
+            DocumentModel doc = inSession.getDocument( new IdRef(id) );
             addBlob(doc, inXPath);
         }
     }
