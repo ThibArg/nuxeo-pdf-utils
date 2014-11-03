@@ -16,19 +16,28 @@
  */
 package org.nuxeo.pdf;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import org.apache.pdfbox.exceptions.CryptographyException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.encryption.BadSecurityHandlerException;
+import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.platform.picture.api.BlobHelper;
 
 /**
@@ -36,6 +45,8 @@ import org.nuxeo.ecm.platform.picture.api.BlobHelper;
  * About page sizes, see http://www.prepressure.com/pdf/basics/page-boxes for
  * details. Here, we get the info from the first page only. The dimensions are
  * in points. Divide by 72 to get it in inches
+ *
+ * Permissions are returned after decryption (if any)
  *
  * @since 5.9.6
  */
@@ -45,27 +56,64 @@ public class PDFInfo {
 
     protected PDDocument pdfDoc;
 
-    protected int numberOfPages;
+    protected String password;
 
-    protected float mediaBoxWidthInPoints, mediaBoxHeightInPoints,
-            cropBoxWidthInPoints, cropBoxHeightInPoints;
+    protected int numberOfPages = -1;
 
-    protected long fileSize;
+    protected float mediaBoxWidthInPoints = 0.0f;
 
-    protected String author, contentCreator, fileName, keywords, pageLayout,
-            pdfVersion, producer, subject, title, metadataKeys;
+    protected float mediaBoxHeightInPoints = 0.0f;
 
-    protected Calendar creationDate, modificationDate;
+    protected float cropBoxWidthInPoints = 0.0f;
 
-    public PDFInfo(Blob inPDFBlob) throws IOException {
-        this(inPDFBlob, false);
+    protected float cropBoxHeightInPoints = 0.0f;
+
+    protected long fileSize = -1;
+
+    protected boolean isEncrypted;
+
+    protected String author = "";
+
+    protected String contentCreator = "";
+
+    protected String fileName = "";
+
+    protected String keywords = "";
+
+    protected String pageLayout = "";
+
+    protected String pdfVersion = "";
+
+    protected String producer = "";
+
+    protected String subject = "";
+
+    protected String title = "";
+
+    protected String xmp;
+
+    protected Calendar creationDate = null;
+
+    protected Calendar modificationDate = null;
+
+    protected boolean alreadyParsed = false;
+
+    public PDFInfo(Blob inBlob) throws ClientException {
+        this(inBlob, null, false);
     }
 
-    public PDFInfo(Blob inPDFBlob, boolean inRunNow) throws IOException {
+    public PDFInfo(Blob inBlob, boolean inRunNow) throws ClientException {
 
-        pdfBlob = inPDFBlob;
+        this(inBlob, null, inRunNow);
+    }
+
+    public PDFInfo(Blob inBlob, String inPassword, boolean inRunNow)
+            throws ClientException {
+
+        pdfBlob = inBlob;
+        password = inPassword;
         if (inRunNow) {
-            run();
+            run(false);
         }
     }
 
@@ -73,62 +121,112 @@ public class PDFInfo {
         return inValue == null ? "" : inValue;
     }
 
-    public void run() throws IOException {
+    public void run(boolean inGetXMP) throws ClientException {
 
-        fileName = pdfBlob.getFilename();
-        // Getting the file size os ok only if the blob is already backed by a
-        // File. If it is pure Stream, we give up
-        File pdfFile = BlobHelper.getFileFromBlob(pdfBlob);
-        if (pdfFile == null) {
-            fileSize = -1;
-        } else {
-            fileSize = pdfFile.length();
-        }
+        // In case the caller calls several time the run() method
+        if (!alreadyParsed) {
 
-        pdfDoc = PDDocument.load(pdfBlob.getStream());
-
-        numberOfPages = pdfDoc.getNumberOfPages();
-        PDDocumentCatalog docCatalog = pdfDoc.getDocumentCatalog();
-        pageLayout = checkNotNull(docCatalog.getPageLayout());
-        pdfVersion = "" + pdfDoc.getDocument().getVersion();
-
-        PDDocumentInformation docInfo = pdfDoc.getDocumentInformation();
-        author = checkNotNull(docInfo.getAuthor());
-        creationDate = docInfo.getCreationDate();
-        contentCreator = checkNotNull(docInfo.getCreator());
-        keywords = checkNotNull(docInfo.getKeywords());
-        metadataKeys = checkNotNull(docInfo.getMetadataKeys().toString());
-        modificationDate = docInfo.getModificationDate();
-        producer = checkNotNull(docInfo.getProducer());
-        subject = checkNotNull(docInfo.getSubject());
-        title = checkNotNull(docInfo.getTitle());
-
-        // Getting dimension is a bit tricky
-        mediaBoxWidthInPoints = -1;
-        mediaBoxHeightInPoints = -1;
-        cropBoxWidthInPoints = -1;
-        cropBoxHeightInPoints = -1;
-        List<PDPage> allPages = docCatalog.getAllPages();
-        boolean gotMediaBox = false;
-        boolean gotCropBox = false;
-        for (PDPage page : allPages) {
-
-            if (page != null) {
-                PDRectangle r = page.findMediaBox();
-                if (r != null) {
-                    mediaBoxWidthInPoints = r.getWidth();
-                    mediaBoxHeightInPoints = r.getHeight();
-                    gotMediaBox = true;
-                }
-                r = page.findCropBox();
-                if (r != null) {
-                    cropBoxWidthInPoints = r.getWidth();
-                    cropBoxHeightInPoints = r.getHeight();
-                    gotCropBox = true;
-                }
+            fileName = pdfBlob.getFilename();
+            // Getting the file size os ok only if the blob is already backed by
+            // a
+            // File. If it is pure Stream, we give up
+            File pdfFile = BlobHelper.getFileFromBlob(pdfBlob);
+            if (pdfFile == null) {
+                fileSize = -1;
+            } else {
+                fileSize = pdfFile.length();
             }
-            if (gotMediaBox && gotCropBox) {
-                break;
+
+            try {
+                pdfDoc = PDDocument.load(pdfBlob.getStream());
+
+                isEncrypted = pdfDoc.isEncrypted();
+                if (isEncrypted) {
+                    pdfDoc.openProtection(new StandardDecryptionMaterial(
+                            password));
+                }
+
+                numberOfPages = pdfDoc.getNumberOfPages();
+                PDDocumentCatalog docCatalog = pdfDoc.getDocumentCatalog();
+                pageLayout = checkNotNull(docCatalog.getPageLayout());
+                pdfVersion = "" + pdfDoc.getDocument().getVersion();
+
+                PDDocumentInformation docInfo = pdfDoc.getDocumentInformation();
+                author = checkNotNull(docInfo.getAuthor());
+                creationDate = docInfo.getCreationDate();
+                contentCreator = checkNotNull(docInfo.getCreator());
+                keywords = checkNotNull(docInfo.getKeywords());
+                modificationDate = docInfo.getModificationDate();
+                producer = checkNotNull(docInfo.getProducer());
+                subject = checkNotNull(docInfo.getSubject());
+                title = checkNotNull(docInfo.getTitle());
+
+                // Getting dimension is a bit tricky
+                mediaBoxWidthInPoints = -1;
+                mediaBoxHeightInPoints = -1;
+                cropBoxWidthInPoints = -1;
+                cropBoxHeightInPoints = -1;
+                List<PDPage> allPages = docCatalog.getAllPages();
+                boolean gotMediaBox = false;
+                boolean gotCropBox = false;
+                for (PDPage page : allPages) {
+
+                    if (page != null) {
+                        PDRectangle r = page.findMediaBox();
+                        if (r != null) {
+                            mediaBoxWidthInPoints = r.getWidth();
+                            mediaBoxHeightInPoints = r.getHeight();
+                            gotMediaBox = true;
+                        }
+                        r = page.findCropBox();
+                        if (r != null) {
+                            cropBoxWidthInPoints = r.getWidth();
+                            cropBoxHeightInPoints = r.getHeight();
+                            gotCropBox = true;
+                        }
+                    }
+                    if (gotMediaBox && gotCropBox) {
+                        break;
+                    }
+                }
+
+                if (inGetXMP) {
+                    xmp = null;
+                    PDMetadata metadata = docCatalog.getMetadata();
+                    if (metadata != null) {
+                        xmp = "";
+                        InputStream xmlInputStream = metadata.createInputStream();
+
+                        InputStreamReader isr = new InputStreamReader(
+                                xmlInputStream);
+                        BufferedReader reader = new BufferedReader(isr);
+                        String line;
+                        do {
+                            line = reader.readLine();
+                            if (line != null) {
+                                xmp += line + "\n";
+                            }
+                        } while (line != null);
+                        reader.close();
+                    }
+                }
+
+            } catch (IOException | BadSecurityHandlerException
+                    | CryptographyException e) {
+                throw new ClientException(/*
+                                           * "Cannot get PDF info: " +
+                                           * e.getMessage(),
+                                           */e);
+            } finally {
+                if (pdfDoc != null) {
+                    try {
+                        pdfDoc.close();
+                    } catch (IOException e) {
+                        // Ignore
+                    }
+                    pdfDoc = null;
+                }
+                alreadyParsed = true;
             }
         }
     }
@@ -158,6 +256,8 @@ public class PDFInfo {
         result.put("Modification date",
                 dateFormat.format(modificationDate.getTime()));
 
+        // "Others"
+        result.put("Encrypted", "" + isEncrypted);
         result.put("Keywords", keywords);
         result.put("Media box width", "" + mediaBoxWidthInPoints);
         result.put("Media box height", "" + mediaBoxHeightInPoints);
@@ -197,11 +297,15 @@ public class PDFInfo {
         return fileSize;
     }
 
+    public boolean isEncrypted() {
+        return isEncrypted;
+    }
+
     public String getAuthor() {
         return author;
     }
 
-    public String getCreator() {
+    public String getContentCreator() {
         return contentCreator;
     }
 
@@ -233,8 +337,8 @@ public class PDFInfo {
         return title;
     }
 
-    public String getMetadataKeys() {
-        return metadataKeys;
+    public String getXmp() {
+        return xmp;
     }
 
     public Calendar getCreationDate() {
@@ -244,4 +348,5 @@ public class PDFInfo {
     public Calendar getModificationDate() {
         return modificationDate;
     }
+
 }

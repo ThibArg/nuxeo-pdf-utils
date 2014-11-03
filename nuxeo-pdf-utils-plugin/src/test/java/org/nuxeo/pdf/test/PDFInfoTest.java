@@ -20,9 +20,12 @@ package org.nuxeo.pdf.test;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
@@ -41,6 +44,8 @@ import org.nuxeo.pdf.PDFInfo;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import com.google.inject.Inject;
 
@@ -53,6 +58,12 @@ public class PDFInfoTest {
     private static final String THE_PDF = "files/13-pages-no-page-numbers.pdf";
 
     private static final String NOT_A_PDF = "files/Travel-3.jpg";
+
+    protected static final String ENCRYPTED_PDF = "files/13-pages-no-page-numbers-encrypted-pwd-nuxeo.pdf";
+
+    protected static final String ENCRYPTED_PDF_PWD = "nuxeo";
+
+    protected static final String PDF_WITH_XMP = "files/XMP-Embedding.pdf";
 
     protected File pdfFile;
 
@@ -74,7 +85,7 @@ public class PDFInfoTest {
     AutomationService automationService;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() throws Exception {
 
         assertNotNull(coreSession);
         assertNotNull(automationService);
@@ -109,7 +120,7 @@ public class PDFInfoTest {
     }
 
     @Test
-    public void testPDFInfo() throws IOException {
+    public void testPDFInfo() throws Exception {
 
         PDFInfo info = new PDFInfo(pdfFileBlob, true);
         assertNotNull(info);
@@ -126,7 +137,7 @@ public class PDFInfoTest {
     }
 
     @Test
-    public void testPDFInfoShouldFailOnNonPDFBlob() throws IOException {
+    public void testPDFInfoShouldFailOnNonPDFBlob() throws Exception {
 
         File f = FileUtils.getResourceFileFromContext(NOT_A_PDF);
         FileBlob fb = new FileBlob(f);
@@ -137,5 +148,66 @@ public class PDFInfoTest {
         } catch (Exception e) {
             // All good
         }
+    }
+
+    @Test
+    public void testPDFInfoOnEncryptedPDF() throws Exception {
+
+        File f = FileUtils.getResourceFileFromContext(ENCRYPTED_PDF);
+        FileBlob fb = new FileBlob(f);
+
+        PDFInfo info = new PDFInfo(fb, ENCRYPTED_PDF_PWD, true);
+        assertNotNull(info);
+
+        HashMap<String, String> values = info.toHashMap();
+        assertNotNull(values);
+
+        // check some values
+        assertEquals("true", values.get("Encrypted"));
+        assertEquals("1.4", values.get("PDF version"));
+        assertEquals(67218, Long.valueOf(values.get("File size")).longValue());
+        assertEquals("SinglePage", values.get("Page Layout"));
+        assertEquals("TextEdit", values.get("Content creator"));
+        assertEquals("Mac OS X 10.10 Quartz PDFContext", values.get("PDF Producer"));
+
+    }
+
+    @Test
+    public void testPDFInfoShouldFailOnEncryptedPDFAndBadPassword() throws Exception {
+
+        File f = FileUtils.getResourceFileFromContext(ENCRYPTED_PDF);
+        FileBlob fb = new FileBlob(f);
+
+        try {
+            PDFInfo info = new PDFInfo(fb, "toto", true);
+            assertTrue("Parsing the file with a wrong password should have failed", false);
+        } catch (Exception e) {
+            // this error comes from CryptographyException
+            // Warning: Maybe if PDFBox version  change, the message changes too.
+            assertTrue(e.getMessage().indexOf("CryptographyException") > -1);
+            assertTrue(e.getMessage().indexOf("The supplied password does not match") > -1);
+        }
+    }
+
+    @Test
+    public void testPDFInfoGetXMP() throws Exception {
+
+        File f = FileUtils.getResourceFileFromContext(PDF_WITH_XMP);
+        FileBlob fb = new FileBlob(f);
+
+        PDFInfo info = new PDFInfo(fb);
+        assertNotNull(info);
+
+        info.run(true);
+        String xmp = info.getXmp();
+        assertNotNull(xmp);
+
+        // We checl we have a valid xml String
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        InputSource is = new InputSource(new StringReader(xmp));
+        Document doc = dBuilder.parse(is);
+        assertEquals("rdf:RDF", doc.getDocumentElement().getNodeName());
+
     }
 }
