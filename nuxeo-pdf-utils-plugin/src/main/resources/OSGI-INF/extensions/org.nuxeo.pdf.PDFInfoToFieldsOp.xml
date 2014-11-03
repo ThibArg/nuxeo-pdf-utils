@@ -1,8 +1,8 @@
-<component name="org.nuxeo.pdf.PDFInfoToFields">
+<component name="org.nuxeo.pdf.PDFInfoToFieldsOp">
 
   <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent"
     point="operations" >
-      <operation class="org.nuxeo.pdf.PDFInfoToFields" />
+      <operation class="org.nuxeo.pdf.PDFInfoToFieldsOp" />
    </extension>
     
 </component>

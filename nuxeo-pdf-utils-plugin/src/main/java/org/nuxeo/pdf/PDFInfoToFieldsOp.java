@@ -40,8 +40,8 @@ import org.nuxeo.ecm.core.api.DocumentModel;
  *
  * For values to use in the properties parameter, see PDFInfo#toHashMap
  */
-@Operation(id = PDFInfoToFields.ID, category = Constants.CAT_DOCUMENT, label = "PDF info to Fields", description = "")
-public class PDFInfoToFields {
+@Operation(id = PDFInfoToFieldsOp.ID, category = Constants.CAT_DOCUMENT, label = "PDF info to Fields", description = "")
+public class PDFInfoToFieldsOp {
 
     public static final String ID = "Document.PDFInfoToFields";
 
