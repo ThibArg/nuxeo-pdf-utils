@@ -122,9 +122,10 @@ public class PDFInfoTest {
     @Test
     public void testPDFInfo() throws Exception {
 
-        PDFInfo info = new PDFInfo(pdfFileBlob, true);
+        PDFInfo info = new PDFInfo(pdfFileBlob);
         assertNotNull(info);
 
+        info.run();
         HashMap<String, String> values = info.toHashMap();
         assertNotNull(values);
 
@@ -143,7 +144,8 @@ public class PDFInfoTest {
         FileBlob fb = new FileBlob(f);
 
         try {
-            PDFInfo info = new PDFInfo(fb, true);
+            PDFInfo info = new PDFInfo(fb);
+            info.run();
             assertTrue("Parsing the non-pdf file should have failed", false);
         } catch (Exception e) {
             // All good
@@ -156,9 +158,10 @@ public class PDFInfoTest {
         File f = FileUtils.getResourceFileFromContext(ENCRYPTED_PDF);
         FileBlob fb = new FileBlob(f);
 
-        PDFInfo info = new PDFInfo(fb, ENCRYPTED_PDF_PWD, true);
+        PDFInfo info = new PDFInfo(fb, ENCRYPTED_PDF_PWD);
         assertNotNull(info);
 
+        info.run();
         HashMap<String, String> values = info.toHashMap();
         assertNotNull(values);
 
@@ -179,7 +182,8 @@ public class PDFInfoTest {
         FileBlob fb = new FileBlob(f);
 
         try {
-            PDFInfo info = new PDFInfo(fb, "toto", true);
+            PDFInfo info = new PDFInfo(fb, "toto");
+            info.run();
             assertTrue("Parsing the file with a wrong password should have failed", false);
         } catch (Exception e) {
             // this error comes from CryptographyException
@@ -198,7 +202,8 @@ public class PDFInfoTest {
         PDFInfo info = new PDFInfo(fb);
         assertNotNull(info);
 
-        info.run(true);
+        info.setParseWithXMP(true);
+        info.run();
         String xmp = info.getXmp();
         assertNotNull(xmp);
 

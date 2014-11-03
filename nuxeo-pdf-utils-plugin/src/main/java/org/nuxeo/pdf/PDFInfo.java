@@ -38,6 +38,8 @@ import org.apache.pdfbox.pdmodel.encryption.BadSecurityHandlerException;
 import org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.picture.api.BlobHelper;
 
 /**
@@ -45,8 +47,6 @@ import org.nuxeo.ecm.platform.picture.api.BlobHelper;
  * About page sizes, see http://www.prepressure.com/pdf/basics/page-boxes for
  * details. Here, we get the info from the first page only. The dimensions are
  * in points. Divide by 72 to get it in inches
- *
- * Permissions are returned after decryption (if any)
  *
  * @since 5.9.6
  */
@@ -90,6 +90,8 @@ public class PDFInfo {
 
     protected String title = "";
 
+    protected boolean doXMP = false;
+
     protected String xmp;
 
     protected Calendar creationDate = null;
@@ -98,30 +100,46 @@ public class PDFInfo {
 
     protected boolean alreadyParsed = false;
 
-    public PDFInfo(Blob inBlob) throws ClientException {
-        this(inBlob, null, false);
+    // LinkedHashMap just because wanted to keep the order
+    // (nothing requested, really)
+    protected LinkedHashMap<String, String> cachedMap;
+
+    public PDFInfo(Blob inBlob) {
+        this(inBlob, null);
     }
 
-    public PDFInfo(Blob inBlob, boolean inRunNow) throws ClientException {
-
-        this(inBlob, null, inRunNow);
-    }
-
-    public PDFInfo(Blob inBlob, String inPassword, boolean inRunNow)
-            throws ClientException {
-
+    public PDFInfo(Blob inBlob, String inPassword) {
         pdfBlob = inBlob;
         password = inPassword;
-        if (inRunNow) {
-            run(false);
+    }
+
+    public PDFInfo(DocumentModel inDoc) {
+        this(inDoc, null, null);
+    }
+
+    public PDFInfo(DocumentModel inDoc, String inXPath, String inPassword) {
+
+        if (inXPath == null || inXPath.isEmpty()) {
+            inXPath = "file:content";
         }
+
+        pdfBlob = (Blob) inDoc.getPropertyValue(inXPath);
+        password = inPassword;
+    }
+
+    public void setParseWithXMP(boolean inValue) {
+        if (alreadyParsed && doXMP != inValue) {
+            throw new ClientException(
+                    "Value of 'doXML' cannot be modified after the blob has been already parsed.");
+        }
+        doXMP = inValue;
     }
 
     protected String checkNotNull(String inValue) {
         return inValue == null ? "" : inValue;
     }
 
-    public void run(boolean inGetXMP) throws ClientException {
+    public void run() throws ClientException {
 
         // In case the caller calls several time the run() method
         if (!alreadyParsed) {
@@ -190,7 +208,7 @@ public class PDFInfo {
                     }
                 }
 
-                if (inGetXMP) {
+                if (doXMP) {
                     xmp = null;
                     PDMetadata metadata = docCatalog.getMetadata();
                     if (metadata != null) {
@@ -233,43 +251,84 @@ public class PDFInfo {
 
     public HashMap<String, String> toHashMap() {
 
-        // LinkedHashMap because I like this order :-)
-        LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss");
+        // Parse if needed
+        run();
 
-        result.put("File name", fileName);
-        result.put("File size", "" + fileSize);
-        result.put("PDF version", pdfVersion);
-        result.put("Page count", "" + numberOfPages);
-        result.put("Page Size", "" + mediaBoxWidthInPoints + " x "
-                + mediaBoxHeightInPoints + " points");
-        result.put("Page width", "" + mediaBoxWidthInPoints);
-        result.put("Page height", "" + mediaBoxHeightInPoints);
-        result.put("Page Layout", pageLayout);
-        result.put("Title", title);
-        result.put("Author", author);
-        result.put("Subject", subject);
-        result.put("PDF Producer", producer);
-        result.put("Content creator", contentCreator);
-        result.put("Creation date", dateFormat.format(creationDate.getTime()));
-        result.put("Modification date",
-                dateFormat.format(modificationDate.getTime()));
+        if (cachedMap == null) {
+            cachedMap = new LinkedHashMap<String, String>();
 
-        // "Others"
-        result.put("Encrypted", "" + isEncrypted);
-        result.put("Keywords", keywords);
-        result.put("Media box width", "" + mediaBoxWidthInPoints);
-        result.put("Media box height", "" + mediaBoxHeightInPoints);
-        result.put("Crop box width", "" + cropBoxWidthInPoints);
-        result.put("Crop box height", "" + cropBoxHeightInPoints);
+            // LinkedHashMap because I like this order :-)
+            SimpleDateFormat dateFormat = new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss");
 
-        return result;
+            cachedMap.put("File name", fileName);
+            cachedMap.put("File size", "" + fileSize);
+            cachedMap.put("PDF version", pdfVersion);
+            cachedMap.put("Page count", "" + numberOfPages);
+            cachedMap.put("Page Size", "" + mediaBoxWidthInPoints + " x "
+                    + mediaBoxHeightInPoints + " points");
+            cachedMap.put("Page width", "" + mediaBoxWidthInPoints);
+            cachedMap.put("Page height", "" + mediaBoxHeightInPoints);
+            cachedMap.put("Page Layout", pageLayout);
+            cachedMap.put("Title", title);
+            cachedMap.put("Author", author);
+            cachedMap.put("Subject", subject);
+            cachedMap.put("PDF Producer", producer);
+            cachedMap.put("Content creator", contentCreator);
+            cachedMap.put("Creation date",
+                    dateFormat.format(creationDate.getTime()));
+            cachedMap.put("Modification date",
+                    dateFormat.format(modificationDate.getTime()));
+
+            // "Others"
+            cachedMap.put("Encrypted", "" + isEncrypted);
+            cachedMap.put("Keywords", keywords);
+            cachedMap.put("Media box width", "" + mediaBoxWidthInPoints);
+            cachedMap.put("Media box height", "" + mediaBoxHeightInPoints);
+            cachedMap.put("Crop box width", "" + cropBoxWidthInPoints);
+            cachedMap.put("Crop box height", "" + cropBoxHeightInPoints);
+        }
+
+        return cachedMap;
+    }
+
+    /**
+     * The inMapping map is a list of key=value pairs (well. it's a HashMap :->)
+     * where the key is the xpath of the destination field, and the value is the
+     * exact label of a PDF info (as returned by <code>toHashMap()</code>). For
+     * example:
+     * <p>
+     * <code><pre>
+     * pdfinfo:title=Title
+     * pdfinfo:producer=PDF Producer
+     * pdfinfo:mediabox_width=Media box width
+     * . . .
+     * </pre></code>
+     * <p>
+     * If <code>inSave</code> is false, inSession can be null.
+     */
+    public DocumentModel toFields(DocumentModel inDoc,
+            HashMap<String, String> inMapping, boolean inSave,
+            CoreSession inSession) {
+
+        // Parse if needed
+        run();
+
+        HashMap<String, String> values = toHashMap();
+        for (String inXPath : inMapping.keySet()) {
+            String value = values.get(inMapping.get(inXPath));
+            inDoc.setPropertyValue(inXPath, value);
+        }
+
+        if (inSave) {
+            inDoc = inSession.saveDocument(inDoc);
+        }
+
+        return inDoc;
     }
 
     @Override
     public String toString() {
-
         return toHashMap().toString();
     }
 

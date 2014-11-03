@@ -18,8 +18,6 @@
 package org.nuxeo.pdf.operations;
 
 import java.io.IOException;
-import java.util.HashMap;
-
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
@@ -75,18 +73,12 @@ public class PDFInfoToFieldsOp {
             for (String inXPath : properties.keySet()) {
                 inDoc.setPropertyValue(inXPath, "");
             }
-        } else {
-            PDFInfo info = new PDFInfo(theBlob, true);
-            HashMap<String, String> values = info.toHashMap();
-            for (String inXPath : properties.keySet()) {
-                String value = values.get(properties.get(inXPath));
-                inDoc.setPropertyValue(inXPath, value);
+            if (save) {
+                session.saveDocument(inDoc);
             }
-        }
-
-        // Save the document
-        if (save) {
-            session.saveDocument(inDoc);
+        } else {
+            PDFInfo info = new PDFInfo(inDoc);
+            inDoc = info.toFields(inDoc, properties, save, session);
         }
 
         return inDoc;
