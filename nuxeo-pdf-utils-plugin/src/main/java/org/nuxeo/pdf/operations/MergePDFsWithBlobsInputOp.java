@@ -53,6 +53,15 @@ public class MergePDFsWithBlobsInputOp {
     @Param(name = "fileName", required = false)
     protected String fileName;
 
+    @Param(name = "pdfTitle", required = false)
+    protected String pdfTitle;
+
+    @Param(name = "pdfSubject", required = false)
+    protected String pdfSubject;
+
+    @Param(name = "pdfAuthor", required = false)
+    protected String pdfAuthor;
+
     @OperationMethod
     public Blob run(Blob inBlob) throws ClientException {
 
@@ -96,7 +105,7 @@ public class MergePDFsWithBlobsInputOp {
 
         // Merge
         try {
-            return inMergeTool.merge(fileName);
+            return inMergeTool.merge(fileName, pdfTitle, pdfSubject, pdfAuthor);
         } catch (COSVisitorException | IOException e) {
             throw new ClientException(e);
         }

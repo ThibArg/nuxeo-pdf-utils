@@ -22,6 +22,8 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.exceptions.COSVisitorException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
@@ -45,7 +47,8 @@ public class PDFMerge {
     protected BlobList blobs = new BlobList();
 
     /*
-     * Constructors accept a blob, a list of blobs, a DocumentModel, or a list of DocumentModels
+     * Constructors accept a blob, a list of blobs, a DocumentModel, or a list
+     * of DocumentModels
      *
      * If using the void constructor, then using addBlob(s) later is mandatory
      */
@@ -74,19 +77,18 @@ public class PDFMerge {
         addBlobs(inDocIDs, inXPath, inSession);
     }
 
-
-
     /*
-     * Appending accepts a single blob, a list of blobs, a single DocumentModel, or a list of DocumentModels
+     * Appending accepts a single blob, a list of blobs, a single DocumentModel,
+     * or a list of DocumentModels
      */
     public void addBlob(Blob inBlob) {
-        if(inBlob != null) {
+        if (inBlob != null) {
             blobs.add(inBlob);
         }
     }
 
     public void addBlobs(BlobList inBlobs) {
-        for(Blob b : inBlobs) {
+        for (Blob b : inBlobs) {
             addBlob(b);
         }
     }
@@ -101,26 +103,39 @@ public class PDFMerge {
 
     public void addBlobs(DocumentModelList inDocs, String inXPath) {
 
-        for(DocumentModel doc : inDocs) {
+        for (DocumentModel doc : inDocs) {
             addBlob(doc, inXPath);
         }
     }
 
-    public void addBlobs(String [] inDocIDs, String inXPath, CoreSession inSession) {
-        for(String id : inDocIDs) {
-            DocumentModel doc = inSession.getDocument( new IdRef(id) );
+    public void addBlobs(String[] inDocIDs, String inXPath,
+            CoreSession inSession) {
+        for (String id : inDocIDs) {
+            DocumentModel doc = inSession.getDocument(new IdRef(id));
             addBlob(doc, inXPath);
         }
     }
 
     /*
      * Now we can merge ;->
+     *
+     * inTitle, inAuthor and inSubject are optional
      */
-    public Blob merge(String inFileName) throws IOException, COSVisitorException {
+    public Blob merge(String inFileName) throws COSVisitorException, IOException {
+        return merge(inFileName, null, null, null);
+    }
+
+    public Blob merge(String inFileName, String inTitle, String inAuthor,
+            String inSubject) throws IOException, COSVisitorException {
 
         Blob finalBlob = null;
 
-        switch(blobs.size()) {
+        inTitle = inTitle != null && !inTitle.isEmpty() ? inTitle : null;
+        inAuthor = inAuthor != null && !inAuthor.isEmpty() ? inAuthor : null;
+        inSubject = inSubject != null && !inSubject.isEmpty() ? inSubject
+                : null;
+
+        switch (blobs.size()) {
         case 0:
             finalBlob = null;
             break;
@@ -131,7 +146,7 @@ public class PDFMerge {
 
         default:
             PDFMergerUtility ut = new PDFMergerUtility();
-            for(Blob b : blobs) {
+            for (Blob b : blobs) {
                 ut.addSource(b.getStream());
             }
 
@@ -140,10 +155,26 @@ public class PDFMerge {
 
             ut.mergeDocuments();
 
+            if (inTitle != null || inAuthor != null || inSubject != null) {
+                PDDocument finalDoc = PDDocument.load(tempFile);
+                PDDocumentInformation docInfo = finalDoc.getDocumentInformation();
+                if (inTitle != null) {
+                    docInfo.setTitle(inTitle);
+                }
+                if (inAuthor != null) {
+                    docInfo.setAuthor(inAuthor);
+                }
+                if (inSubject != null) {
+                    docInfo.setSubject(inSubject);
+                }
+                finalDoc.save(tempFile);
+                finalDoc.close();
+            }
+
             finalBlob = new FileBlob(tempFile);
             Framework.trackFile(tempFile, finalBlob);
 
-            if(inFileName != null && !inFileName.isEmpty()) {
+            if (inFileName != null && !inFileName.isEmpty()) {
                 finalBlob.setFilename(inFileName);
             } else {
                 finalBlob.setFilename(blobs.get(0).getFilename());
