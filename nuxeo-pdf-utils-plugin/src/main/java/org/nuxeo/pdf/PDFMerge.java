@@ -19,6 +19,8 @@ package org.nuxeo.pdf;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
@@ -32,16 +34,25 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  *
+ * To be generic for the caller, it's ok to pass a null blob, it is just ignored
  *
  * @since 5.9.6
  */
 public class PDFMerge {
 
+    public static final Log log = LogFactory.getLog(PDFMerge.class);
+
     protected BlobList blobs = new BlobList();
 
     /*
      * Constructors accept a blob, a list of blobs, a DocumentModel, or a list of DocumentModels
+     *
+     * If using the void constructor, then using addBlob(s) later is mandatory
      */
+    public PDFMerge() {
+
+    }
+
     public PDFMerge(Blob inBlob) {
         addBlob(inBlob);
     }
@@ -69,11 +80,15 @@ public class PDFMerge {
      * Appending accepts a single blob, a list of blobs, a single DocumentModel, or a list of DocumentModels
      */
     public void addBlob(Blob inBlob) {
-        blobs.add(inBlob);
+        if(inBlob != null) {
+            blobs.add(inBlob);
+        }
     }
 
     public void addBlobs(BlobList inBlobs) {
-        blobs.addAll(inBlobs);
+        for(Blob b : inBlobs) {
+            addBlob(b);
+        }
     }
 
     public void addBlob(DocumentModel inDoc, String inXPath) {

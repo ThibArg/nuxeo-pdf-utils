@@ -132,7 +132,7 @@ public class PDFInfoTest {
         // check some values
         assertEquals("1.3", values.get("PDF version"));
         assertEquals(67122, Long.valueOf(values.get("File size")).longValue());
-        assertEquals("SinglePage", values.get("Page Layout"));
+        assertEquals("SinglePage", values.get("Page layout"));
         assertEquals("TextEdit", values.get("Content creator"));
 
     }
@@ -169,9 +169,9 @@ public class PDFInfoTest {
         assertEquals("true", values.get("Encrypted"));
         assertEquals("1.4", values.get("PDF version"));
         assertEquals(67218, Long.valueOf(values.get("File size")).longValue());
-        assertEquals("SinglePage", values.get("Page Layout"));
+        assertEquals("SinglePage", values.get("Page layout"));
         assertEquals("TextEdit", values.get("Content creator"));
-        assertEquals("Mac OS X 10.10 Quartz PDFContext", values.get("PDF Producer"));
+        assertEquals("Mac OS X 10.10 Quartz PDFContext", values.get("PDF producer"));
 
     }
 
@@ -207,7 +207,7 @@ public class PDFInfoTest {
         String xmp = info.getXmp();
         assertNotNull(xmp);
 
-        // We checl we have a valid xml String
+        // We check we have a valid xml String
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         InputSource is = new InputSource(new StringReader(xmp));

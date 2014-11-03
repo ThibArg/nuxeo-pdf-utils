@@ -265,15 +265,15 @@ public class PDFInfo {
             cachedMap.put("File size", "" + fileSize);
             cachedMap.put("PDF version", pdfVersion);
             cachedMap.put("Page count", "" + numberOfPages);
-            cachedMap.put("Page Size", "" + mediaBoxWidthInPoints + " x "
+            cachedMap.put("Page size", "" + mediaBoxWidthInPoints + " x "
                     + mediaBoxHeightInPoints + " points");
             cachedMap.put("Page width", "" + mediaBoxWidthInPoints);
             cachedMap.put("Page height", "" + mediaBoxHeightInPoints);
-            cachedMap.put("Page Layout", pageLayout);
+            cachedMap.put("Page layout", pageLayout);
             cachedMap.put("Title", title);
             cachedMap.put("Author", author);
             cachedMap.put("Subject", subject);
-            cachedMap.put("PDF Producer", producer);
+            cachedMap.put("PDF producer", producer);
             cachedMap.put("Content creator", contentCreator);
             cachedMap.put("Creation date",
                     dateFormat.format(creationDate.getTime()));
