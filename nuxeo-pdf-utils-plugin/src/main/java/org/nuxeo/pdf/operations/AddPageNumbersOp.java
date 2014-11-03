@@ -15,7 +15,7 @@
  *     Thibaud Arguillere
  */
 
-package org.nuxeo.pdf;
+package org.nuxeo.pdf.operations;
 
 import java.io.IOException;
 
@@ -28,6 +28,7 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.BlobCollector;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.pdf.PDFUtils;
 import org.nuxeo.pdf.PDFUtils.PAGE_NUMBER_POSITION;
 
 /**

@@ -15,7 +15,7 @@
  *     thibaud
  */
 
-package org.nuxeo.pdf;
+package org.nuxeo.pdf.operations;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,6 +30,7 @@ import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.pdf.PDFInfo;
 
 /**
  * If there is no blob of if the blob is not a pdf document, we empty the

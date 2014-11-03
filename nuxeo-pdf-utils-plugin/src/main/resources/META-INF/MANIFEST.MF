@@ -7,8 +7,9 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ManifestVersion: 2
 Bundle-Vendor: Nuxeo
-Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.AddPageNumbersOp.xm
- l,OSGI-INF/extensions/org.nuxeo.pdf.MergePDFsWithBlobsInputOp.xml,OSG
- I-INF/extensions/org.nuxeo.pdf.MergePDFsWithDocsInputOp.xml,OSGI-INF/
- extensions/org.nuxeo.pdf.PDFInfoToFieldsOp.xml
+Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
+ oFieldsOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePDFsW
+ ithBlobsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.AddP
+ ageNumbersOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePD
+ FsWithDocsInputOp.xml
 

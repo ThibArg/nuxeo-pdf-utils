@@ -1,8 +1,8 @@
-<component name="org.nuxeo.pdf.MergePDFsWithDocsInputOp">
+<component name="org.nuxeo.pdf.operations.AddPageNumbersOp">
 
   <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent"
     point="operations" >
-      <operation class="org.nuxeo.pdf.MergePDFsWithDocsInputOp" />
+      <operation class="org.nuxeo.pdf.operations.AddPageNumbersOp" />
    </extension>
     
 </component>

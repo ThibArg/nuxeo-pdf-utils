@@ -15,11 +15,12 @@
  *     Thibaud Arguillere
  */
 
-package org.nuxeo.pdf;
+package org.nuxeo.pdf.operations;
 
 import java.io.IOException;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
+import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -29,19 +30,30 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.pdf.PDFMerge;
 
 /**
- * The blob(s) in input will always be the first blob(s), to which we append:
- * (1) blobToAppendVarName, if used, then (2) toAppendListVarName if used
  *
  */
-@Operation(id = MergePDFsWithBlobsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Blob(s): Merge PDFs", description = "The input blob(s) always is(are) the first PDFs. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
-public class MergePDFsWithBlobsInputOp {
+@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Document(s): Merge PDFs", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
+public class MergePDFsWithDocsInputOp {
 
-    public static final String ID = "Blob.MergePDFs";
+    public static final String ID = "Document.MergePDFs";
+
+    @Context
+    protected CoreSession session;
 
     @Context
     protected OperationContext ctx;
+
+    @Context
+    protected AutomationService autService;
+
+    @Param(name = "xpath", required = false, values = { "file:content" })
+    String xpath = "file:content";
 
     @Param(name = "toAppendVarName", required = false)
     protected String toAppendVarName;
@@ -53,30 +65,23 @@ public class MergePDFsWithBlobsInputOp {
     protected String fileName;
 
     @OperationMethod
-    public Blob run(Blob inBlob) throws ClientException {
+    public Blob run(DocumentModel inDoc) throws ClientException {
 
-        PDFMerge pdfm = new PDFMerge(inBlob);
+        PDFMerge pdfm = new PDFMerge(inDoc, xpath);
 
         return doMerge(pdfm);
     }
 
     @OperationMethod
-    public Blob run(BlobList inBlobs) throws ClientException {
+    public Blob run(DocumentModelList inDocs) throws ClientException {
 
-        PDFMerge pdfm = new PDFMerge(inBlobs.get(0));
-        int max = inBlobs.size();
-        for (int i = 1; i < max; i++) {
-            pdfm.addBlob(inBlobs.get(i));
-        }
+        PDFMerge pdfm = new PDFMerge(inDocs, xpath);
 
         return doMerge(pdfm);
     }
 
     protected Blob doMerge(PDFMerge inMergeTool) throws ClientException {
 
-        // The first blob(s) has(have) already been added
-
-        // Add the simple blob
         if (toAppendVarName != null && !toAppendVarName.isEmpty()) {
             inMergeTool.addBlob((Blob) ctx.get(toAppendVarName));
         }
