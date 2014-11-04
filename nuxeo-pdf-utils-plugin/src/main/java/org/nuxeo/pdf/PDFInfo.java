@@ -171,9 +171,9 @@ public class PDFInfo {
 
                 PDDocumentInformation docInfo = pdfDoc.getDocumentInformation();
                 author = checkNotNull(docInfo.getAuthor());
-                creationDate = docInfo.getCreationDate();
                 contentCreator = checkNotNull(docInfo.getCreator());
                 keywords = checkNotNull(docInfo.getKeywords());
+                creationDate = docInfo.getCreationDate();
                 modificationDate = docInfo.getModificationDate();
                 producer = checkNotNull(docInfo.getProducer());
                 subject = checkNotNull(docInfo.getSubject());
@@ -275,10 +275,18 @@ public class PDFInfo {
             cachedMap.put("Subject", subject);
             cachedMap.put("PDF producer", producer);
             cachedMap.put("Content creator", contentCreator);
-            cachedMap.put("Creation date",
-                    dateFormat.format(creationDate.getTime()));
-            cachedMap.put("Modification date",
-                    dateFormat.format(modificationDate.getTime()));
+            if (creationDate != null) {
+                cachedMap.put("Creation date",
+                        dateFormat.format(creationDate.getTime()));
+            } else {
+                cachedMap.put("Creation date", "");
+            }
+            if (modificationDate != null) {
+                cachedMap.put("Modification date",
+                        dateFormat.format(modificationDate.getTime()));
+            } else {
+                cachedMap.put("Modification date", "");
+            }
 
             // "Others"
             cachedMap.put("Encrypted", "" + isEncrypted);
