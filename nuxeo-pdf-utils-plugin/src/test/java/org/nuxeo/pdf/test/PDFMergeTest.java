@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.junit.After;
@@ -71,6 +73,8 @@ public class PDFMergeTest {
     protected ArrayList<File> createdTempFiles = new ArrayList<File>();
 
     protected DocumentModel testDocsFolder, docMergePDF1, docMergePDF2, docMergePDF3;
+
+    private static Log log = LogFactory.getLog(PDFMergeTest.class);
 
     @Inject
     CoreSession coreSession;

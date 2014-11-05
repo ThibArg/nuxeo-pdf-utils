@@ -39,7 +39,7 @@ import org.nuxeo.pdf.PDFInfo;
  *
  * For values to use in the properties parameter, see PDFInfo#toHashMap
  */
-@Operation(id = PDFInfoToFieldsOp.ID, category = Constants.CAT_DOCUMENT, label = "PDF: Info to Fields", description = "")
+@Operation(id = PDFInfoToFieldsOp.ID, category = Constants.CAT_DOCUMENT, label = "PDF: Info to Fields", description = "Extact the info of the PDF stored in <code>xpath</code> and put them in the fields referenced by <code>properties</code>. <code>properties</code> is <code>key=value</code> list (one key-value pair/line, where <code>key</code> is the xpath of the destination field and <code>value</code> is the exact label( case sensitive) as returned by the PageExtractor (see this operation documentation). If there is no blob or is the blob is not a PDF, all the values referenced in <code>properties</code> are cleared (set to empty string, 0, ...)")
 public class PDFInfoToFieldsOp {
 
     public static final String ID = "PDF.InfoToFields";
@@ -69,7 +69,7 @@ public class PDFInfoToFieldsOp {
         // If there is no blob, we empty all the values
         Blob theBlob = null;
         theBlob = (Blob) inDoc.getPropertyValue(xpath);
-        if (theBlob == null) {
+        if (theBlob == null || !theBlob.getMimeType().equals("application/pdf")) {
             for (String inXPath : properties.keySet()) {
                 inDoc.setPropertyValue(inXPath, "");
             }

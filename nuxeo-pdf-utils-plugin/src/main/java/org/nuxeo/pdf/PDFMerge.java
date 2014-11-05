@@ -34,8 +34,25 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- *
- * To be generic for the caller, it's ok to pass a null blob, it is just ignored
+ * Merge several PDFs in one.
+ * <p>
+ * Basically, the caller adds blobs and then <code>merge()</code>. The PDFs are
+ * merged in the order they were added.
+ * <p>
+ * The class accepts misc. parameters: Single <code>Blob</code>,
+ * <code>BlobList</code>, single <code>DocumentModel</code>,
+ * <code>DocumentModelList</code> or a list of IDs of <code>DocumentModel</code>
+ * <p>
+ * <i>Notice/i>: These are nuxeo <code>Blob</code>, <code>BlobList</code>, etc.
+ * <p>
+ * When a <code>DocumentModel</code> is used, the code may expect an xpath to
+ * extract the blob form the document. When the xpath parameter is not used (
+ * <code>null</code> or ""), the default <code>file:content</code> xpath is
+ * used.
+ * <p>
+ * <p>
+ * To let the caller be generic, it's ok to pass a null blob, it is just
+ * ignored.
  *
  * @since 5.9.6
  */
@@ -45,12 +62,6 @@ public class PDFMerge {
 
     protected BlobList blobs = new BlobList();
 
-    /*
-     * Constructors accept a blob, a list of blobs, a DocumentModel, or a list
-     * of DocumentModels
-     *
-     * If using the void constructor, then using addBlob(s) later is mandatory
-     */
     public PDFMerge() {
 
     }
@@ -76,10 +87,6 @@ public class PDFMerge {
         addBlobs(inDocIDs, inXPath, inSession);
     }
 
-    /*
-     * Appending accepts a single blob, a list of blobs, a single DocumentModel,
-     * or a list of DocumentModels
-     */
     public void addBlob(Blob inBlob) {
         if (inBlob != null) {
             blobs.add(inBlob);
@@ -115,16 +122,38 @@ public class PDFMerge {
         }
     }
 
-    /*
-     * Now we can merge ;->
+    /**
+     * Merge the PDFs.
      *
-     * inTitle, inAuthor and inSubject are optional
+     * @param inFileName
+     * @return the Blob embedding the PDF resulting form the merge.
+     * @throws COSVisitorException
+     * @throws IOException
+     *
+     * @since 5.9.5
      */
     public Blob merge(String inFileName) throws COSVisitorException,
             IOException {
         return merge(inFileName, null, null, null);
     }
 
+    /**
+     * Merge the PDFs. optionnaly, can set the title, subject and author of the
+     * resulting PDF.
+     * <p>
+     * <b>Notice</b> for title, author and subject: If the value is null or "",
+     * it is just ignored
+     *
+     * @param inFileName
+     * @param inTitle
+     * @param inSubject
+     * @param inAuthor
+     * @return
+     * @throws IOException
+     * @throws COSVisitorException
+     *
+     * @since 5.9.5
+     */
     public Blob merge(String inFileName, String inTitle, String inSubject,
             String inAuthor) throws IOException, COSVisitorException {
 

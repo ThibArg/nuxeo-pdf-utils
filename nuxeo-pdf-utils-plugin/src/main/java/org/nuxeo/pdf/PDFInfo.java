@@ -43,10 +43,16 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.picture.api.BlobHelper;
 
 /**
- *
+ * The class will parse the info embedded in a PDF, and return them either
+ * globally (<code>toHashMap()</code> or <code>toString()</code>) or via
+ * individual getters.
+ * <p>
+ * The PDF is parsed only at first call to <code>run()</code>, values are cached
+ * during first call.
+ * <p>
  * About page sizes, see http://www.prepressure.com/pdf/basics/page-boxes for
  * details. Here, we get the info from the first page only. The dimensions are
- * in points. Divide by 72 to get it in inches
+ * in points. Divide by 72 to get it in inches.
  *
  * @since 5.9.6
  */
@@ -104,19 +110,46 @@ public class PDFInfo {
     // (nothing requested, really)
     protected LinkedHashMap<String, String> cachedMap;
 
+    /**
+     * Constructor with a Blob
+     *
+     * @param inBlob
+     */
     public PDFInfo(Blob inBlob) {
         this(inBlob, null);
     }
 
+    /**
+     * Constructor for Blob + encrypted PDF
+     *
+     * @param inBlob
+     * @param inPassword if the pdf is encrypted
+     */
     public PDFInfo(Blob inBlob, String inPassword) {
         pdfBlob = inBlob;
         password = inPassword;
     }
 
+    /**
+     * Constructor with a DocumentModel. Uses the default
+     * <code>file:content</code> xpath to get the blob from the document.
+     *
+     * @param inDoc
+     */
     public PDFInfo(DocumentModel inDoc) {
         this(inDoc, null, null);
     }
 
+    /**
+     * Constructor for DocumentModel + encrypted PDF
+     * <p>
+     * If <inXPath</code> is <code>null</code> or "", it is set to the default
+     * <code>file:content</code> value.
+     *
+     * @param inDoc
+     * @param inXPath
+     * @param inPassword
+     */
     public PDFInfo(DocumentModel inDoc, String inXPath, String inPassword) {
 
         if (inXPath == null || inXPath.isEmpty()) {
@@ -127,6 +160,16 @@ public class PDFInfo {
         password = inPassword;
     }
 
+    /**
+     * If set to true, parsing will extract PDF.
+     * <p>
+     * The value cannot be modified if <code>run()</code> already has been
+     * called.
+     *
+     * @param true to extract XMP
+     *
+     * @since 5.9.5
+     */
     public void setParseWithXMP(boolean inValue) {
         if (alreadyParsed && doXMP != inValue) {
             throw new ClientException(
@@ -139,6 +182,19 @@ public class PDFInfo {
         return inValue == null ? "" : inValue;
     }
 
+    /**
+     * After building the object with the correct constructor, and after
+     * possibly having set some parsing property (<code>setParseWithXMP()</code>
+     * for example), this method will extract the information from the PDF.
+     * <p>
+     * After extraction, caller get the info: Either all of them (
+     * <code>toHashMap()</code> or <code>toString()</code>) or individual info
+     * (see all getters)
+     *
+     * @throws ClientException
+     *
+     * @since 5.9.5
+     */
     public void run() throws ClientException {
 
         // In case the caller calls several time the run() method
@@ -249,6 +305,38 @@ public class PDFInfo {
         }
     }
 
+    /**
+     * Return all and every parsed info in a String <code>HashMap</code>.
+     * <p>
+     * Possible values are:
+     * <ul>
+     * <li>File name</li>
+     * <li>File size</li>
+     * <li>PDF version</li>
+     * <li>Page count</li>
+     * <li>Page size</li>
+     * <li>Page width</li>
+     * <li>Page height</li>
+     * <li>Page layout</li>
+     * <li>Title</li>
+     * <li>Author</li>
+     * <li>Subject</li>
+     * <li>PDF producer</li>
+     * <li>Content creator</li>
+     * <li>Creation date</li>
+     * <li>Modification date</li>
+     * <li>Encrypted</li>
+     * <li>Keywords</li>
+     * <li>Media box width</li>
+     * <li>Media box height</li>
+     * <li>Crop box width</li>
+     * <li>Crop box height</li>
+     * </ul>
+     *
+     * @return the HashMap of all the info as Strings
+     *
+     * @since 5.9.5
+     */
     public HashMap<String, String> toHashMap() {
 
         // Parse if needed
@@ -257,7 +345,6 @@ public class PDFInfo {
         if (cachedMap == null) {
             cachedMap = new LinkedHashMap<String, String>();
 
-            // LinkedHashMap because I like this order :-)
             SimpleDateFormat dateFormat = new SimpleDateFormat(
                     "yyyy-MM-dd HH:mm:ss");
 
@@ -301,10 +388,10 @@ public class PDFInfo {
     }
 
     /**
-     * The inMapping map is a list of key=value pairs (well. it's a HashMap :->)
-     * where the key is the xpath of the destination field, and the value is the
-     * exact label of a PDF info (as returned by <code>toHashMap()</code>). For
-     * example:
+     * The <code>inMapping</code> map is a list of key=value pairs (well. it's a
+     * HashMap :->) where the key is the xpath of the destination field, and the
+     * value is the exact label of a PDF info as returned by
+     * <code>toHashMap()</code>. For example:
      * <p>
      * <code><pre>
      * pdfinfo:title=Title
@@ -314,6 +401,14 @@ public class PDFInfo {
      * </pre></code>
      * <p>
      * If <code>inSave</code> is false, inSession can be null.
+     *
+     * @param inDoc
+     * @param inMapping
+     * @param inSave
+     * @param inSession
+     * @return
+     *
+     * @since 5.9.5
      */
     public DocumentModel toFields(DocumentModel inDoc,
             HashMap<String, String> inMapping, boolean inSave,
@@ -335,6 +430,9 @@ public class PDFInfo {
         return inDoc;
     }
 
+    /**
+     * Wrapper for <code>toHashMap().toString()</code>
+     */
     @Override
     public String toString() {
         return toHashMap().toString();

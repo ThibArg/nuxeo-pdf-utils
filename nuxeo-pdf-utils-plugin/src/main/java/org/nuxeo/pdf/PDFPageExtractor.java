@@ -28,9 +28,9 @@ import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 
 /**
+ * Extract pages from a PDF
  *
- *
- * @since TODO
+ * @since 5.9.5
  */
 public class PDFPageExtractor {
 
@@ -43,6 +43,14 @@ public class PDFPageExtractor {
         pdfBlob = inBlob;
     }
 
+    /**
+     * Constructor with a <code>DocumentModel</code>. Default value for
+     * <code>inXPath</code> (if passed <code>null</code> or "", if
+     * <code>file:content</code>.
+     *
+     * @param inDoc
+     * @param inXPath
+     */
     public PDFPageExtractor(DocumentModel inDoc, String inXPath) {
 
         if (inXPath == null || inXPath.isEmpty()) {
@@ -56,12 +64,23 @@ public class PDFPageExtractor {
     }
 
     /**
-     * Return a Blob built from page inStartPage to inEndPage (inclusive).
+     * Return a Blob built from page <code>inStartPage</code> to
+     * <code>inEndPage</code> (inclusive).
+     * <p>
+     * If <code>inEndPage</code> is greater than the number of pages in the
+     * source document, it will go to the end of the document. If
+     * <code>inStartPage</code> is less than 1, it'll start with page 1. If
+     * <code>inStartPage</code> is greater than <code>inEndPage</code> or
+     * greater than the number of pages in the source document, a blank document
+     * will be returned.
      * <p>
      * If fileName is null or "", if is set to the original name + the page
      * range: mydoc.pdf and pages 10-75 +> mydoc-10-75.pdf
      * <p>
      * The mimetype is always set to "application/pdf"
+     * <p>
+     * Can set the title, subject and author of the resulting PDF.
+     * <b>Notice</b>: If the value is null or "", it is just ignored
      *
      * @param inStartPage
      * @param inEndPage
@@ -91,18 +110,19 @@ public class PDFPageExtractor {
 
             result.setMimeType("application/pdf");
 
-            if(inFileName == null || inFileName.isEmpty()) {
+            if (inFileName == null || inFileName.isEmpty()) {
                 String originalName = pdfBlob.getFilename();
-                if(originalName == null || originalName.isEmpty()) {
+                if (originalName == null || originalName.isEmpty()) {
                     originalName = "extracted";
                 } else {
                     int pos = originalName.toLowerCase().lastIndexOf(".pdf");
-                    if(pos > 0) {
+                    if (pos > 0) {
                         originalName = originalName.substring(0, pos);
                     }
 
                 }
-                inFileName = originalName + "-" + inStartPage + "-" + inEndPage + ".pdf";
+                inFileName = originalName + "-" + inStartPage + "-" + inEndPage
+                        + ".pdf";
             }
             result.setFilename(inFileName);
             extracted.close();

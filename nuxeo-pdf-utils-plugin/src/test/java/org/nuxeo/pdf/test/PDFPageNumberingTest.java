@@ -40,8 +40,8 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.pdf.PDFUtils;
-import org.nuxeo.pdf.PDFUtils.PAGE_NUMBER_POSITION;
+import org.nuxeo.pdf.PDFPageNumbering.PAGE_NUMBER_POSITION;
+import org.nuxeo.pdf.PDFPageNumbering;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -52,7 +52,7 @@ import com.google.inject.Inject;
 @Features({ PlatformFeature.class, CoreFeature.class,
         EmbeddedAutomationServerFeature.class })
 @Deploy({ "nuxeo-pdf-utils-plugin" })
-public class PDFUtilsTest {
+public class PDFPageNumberingTest {
 
     private static final String THE_PDF = "files/13-pages-no-page-numbers.pdf";
 
@@ -159,8 +159,8 @@ public class PDFUtilsTest {
         assertNotNull(coreSession);
         assertNotNull(automationService);
 
-        testDocsFolder = coreSession.createDocumentModel("/",
-                "test-pictures", "Folder");
+        testDocsFolder = coreSession.createDocumentModel("/", "test-pictures",
+                "Folder");
         testDocsFolder.setPropertyValue("dc:title", "test-pdfutils");
         testDocsFolder = coreSession.createDocument(testDocsFolder);
         testDocsFolder = coreSession.saveDocument(testDocsFolder);
@@ -207,9 +207,9 @@ public class PDFUtilsTest {
 
         Blob blobResult;
 
-        blobResult = PDFUtils.addPageNumbers(pdfFileBlob, inStartAtPage,
-                inStartAtNumber, inFontName, inFontSize, inHex255Color,
-                inPosition);
+        PDFPageNumbering pn = new PDFPageNumbering(pdfFileBlob);
+        blobResult = pn.addPageNumbers(inStartAtPage, inStartAtNumber,
+                inFontName, inFontSize, inHex255Color, inPosition);
         assertNotNull(blobResult);
         assertNotSame(md5OfThePdf, getBlobMd5(blobResult));
 
