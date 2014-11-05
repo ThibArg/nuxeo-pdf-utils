@@ -40,7 +40,8 @@ import org.nuxeo.pdf.PDFMerge;
  * in the <code>xpath</code> field. If
  * <code>xpath</xpath>, it is set to the default value <code>file:content</code>
  * <p>
- * Also, it is of for the input document to have no blob (it is just ignored and the blobs in the misc. variables will be merged)
+ * Also, it is of for the input document to have no blob (it is just ignored and
+ * the blobs in the misc. variables will be merged)
  * <p>
  * The operation appends:
  * <ul>

@@ -72,7 +72,8 @@ public class PDFMergeTest {
 
     protected ArrayList<File> createdTempFiles = new ArrayList<File>();
 
-    protected DocumentModel testDocsFolder, docMergePDF1, docMergePDF2, docMergePDF3;
+    protected DocumentModel testDocsFolder, docMergePDF1, docMergePDF2,
+            docMergePDF3;
 
     private static Log log = LogFactory.getLog(PDFMergeTest.class);
 
@@ -118,8 +119,8 @@ public class PDFMergeTest {
         assertNotNull(coreSession);
         assertNotNull(automationService);
 
-        testDocsFolder = coreSession.createDocumentModel("/",
-                "test-pictures", "Folder");
+        testDocsFolder = coreSession.createDocumentModel("/", "test-pictures",
+                "Folder");
         testDocsFolder.setPropertyValue("dc:title", "test-pdfutils");
         testDocsFolder = coreSession.createDocument(testDocsFolder);
         testDocsFolder = coreSession.saveDocument(testDocsFolder);
@@ -153,7 +154,8 @@ public class PDFMergeTest {
      * We check the pdf is in the correct order. Each pdf file used has a text
      * telling us where it should have been merged
      */
-    protected void checkMergedPDF(Blob inBlob, boolean jutsFirst2Pages) throws IOException {
+    protected void checkMergedPDF(Blob inBlob, boolean jutsFirst2Pages)
+            throws IOException {
 
         File tempFile = File.createTempFile("testmergepdf", ".pdf");
         createdTempFiles.add(tempFile);
@@ -164,7 +166,7 @@ public class PDFMergeTest {
         createdPDDocs.add(doc);
 
         // 2 + 3 + 1
-        if(jutsFirst2Pages) {
+        if (jutsFirst2Pages) {
             assertEquals(5, doc.getNumberOfPages());
         } else {
             assertEquals(6, doc.getNumberOfPages());
@@ -177,7 +179,7 @@ public class PDFMergeTest {
         txt = extractText(doc, 3, 3);
         assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "2") > -1);
 
-        if(!jutsFirst2Pages) {
+        if (!jutsFirst2Pages) {
             txt = extractText(doc, 6, 6);
             assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "3") > -1);
         }
@@ -267,7 +269,7 @@ public class PDFMergeTest {
     @Test
     public void testMergePDFs_WithDocIDs() throws Exception {
 
-        String [] docIDs = new String[3];
+        String[] docIDs = new String[3];
 
         docIDs[0] = docMergePDF1.getId();
         docIDs[1] = docMergePDF2.getId();
@@ -289,17 +291,18 @@ public class PDFMergeTest {
         assertNotNull(ctx);
 
         // Test with blobs
-        FileBlob fb = new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_1));
+        FileBlob fb = new FileBlob(
+                FileUtils.getResourceFileFromContext(MERGEPDF_1));
         ctx.setInput(fb);
         chain = new OperationChain("testChain");
 
-        ctx.put("varBlobToAppend", new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
+        ctx.put("varBlobToAppend",
+                new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithBlobsInputOp.ID)
-                .set("toAppendVarName", "varBlobToAppend")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithBlobsInputOp.ID).set("toAppendVarName",
+                "varBlobToAppend").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, true);
         assertEquals(theFileName, result.getFilename());
@@ -320,13 +323,13 @@ public class PDFMergeTest {
         ctx.setInput(bl);
         chain = new OperationChain("testChain");
 
-        ctx.put("varBlobToAppend", new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
+        ctx.put("varBlobToAppend",
+                new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithBlobsInputOp.ID)
-                .set("toAppendVarName", "varBlobToAppend")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithBlobsInputOp.ID).set("toAppendVarName",
+                "varBlobToAppend").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, false);
         assertEquals(theFileName, result.getFilename());
@@ -340,7 +343,8 @@ public class PDFMergeTest {
         OperationContext ctx = new OperationContext(coreSession);
         assertNotNull(ctx);
 
-        FileBlob fb = new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_1));
+        FileBlob fb = new FileBlob(
+                FileUtils.getResourceFileFromContext(MERGEPDF_1));
         BlobList bl = new BlobList();
         bl.add(new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
         bl.add(new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
@@ -349,11 +353,10 @@ public class PDFMergeTest {
         chain = new OperationChain("testChain");
         ctx.put("varBlobListToAppend", bl);
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithBlobsInputOp.ID)
-                .set("toAppendListVarName", "varBlobListToAppend")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithBlobsInputOp.ID).set("toAppendListVarName",
+                "varBlobListToAppend").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, false);
         assertEquals(theFileName, result.getFilename());
@@ -370,13 +373,13 @@ public class PDFMergeTest {
         ctx.setInput(docMergePDF1);
         chain = new OperationChain("testChain");
 
-        ctx.put("varBlobToAppend", new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
+        ctx.put("varBlobToAppend",
+                new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_2)));
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithDocsInputOp.ID)
-                .set("toAppendVarName", "varBlobToAppend")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithDocsInputOp.ID).set("toAppendVarName",
+                "varBlobToAppend").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, true);
         assertEquals(theFileName, result.getFilename());
@@ -397,19 +400,18 @@ public class PDFMergeTest {
         ctx.setInput(docList);
         chain = new OperationChain("testChain");
 
-        ctx.put("varBlobToAppend", new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
+        ctx.put("varBlobToAppend",
+                new FileBlob(FileUtils.getResourceFileFromContext(MERGEPDF_3)));
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithDocsInputOp.ID)
-                .set("toAppendVarName", "varBlobToAppend")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithDocsInputOp.ID).set("toAppendVarName",
+                "varBlobToAppend").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, false);
         assertEquals(theFileName, result.getFilename());
 
     }
-
 
     @Test
     public void testMergePDFsDocsOperation_others() throws Exception {
@@ -421,17 +423,16 @@ public class PDFMergeTest {
         ctx.setInput(docMergePDF1);
         chain = new OperationChain("testChain");
 
-        String [] docIDs = new String[2];
+        String[] docIDs = new String[2];
         docIDs[0] = docMergePDF2.getId();
         docIDs[1] = docMergePDF3.getId();
 
         ctx.put("varOfDocIDs", docIDs);
         String theFileName = "theMergedFile.pdf";
-        chain.add(MergePDFsWithDocsInputOp.ID)
-                .set("toAppendDocIDsVarName", "varOfDocIDs")
-                .set("fileName", theFileName);
+        chain.add(MergePDFsWithDocsInputOp.ID).set("toAppendDocIDsVarName",
+                "varOfDocIDs").set("fileName", theFileName);
 
-        Blob result = (Blob) automationService.run(ctx,  chain);
+        Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkMergedPDF(result, false);
         assertEquals(theFileName, result.getFilename());

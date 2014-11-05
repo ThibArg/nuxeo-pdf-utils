@@ -59,7 +59,7 @@ public class ExtractPDFPagesOp {
     @Param(name = "pdfAuthor", required = false)
     protected String pdfAuthor;
 
-    @Param(name = "xpath", required = false, values = {"file:content"})
+    @Param(name = "xpath", required = false, values = { "file:content" })
     protected String xpath;
 
     @OperationMethod

@@ -67,7 +67,7 @@ public class AddPageNumbersOp {
     @Param(name = "hex255Color", required = false, values = { "0xffffff" })
     protected String hex255Color = "0xffffff";
 
-    @Param(name = "xpath", required = false, values = {"file:content" })
+    @Param(name = "xpath", required = false, values = { "file:content" })
     protected String xpath = "file:content";
 
     @OperationMethod(collector = BlobCollector.class)
@@ -101,15 +101,16 @@ public class AddPageNumbersOp {
         }
 
         PDFPageNumbering pn = new PDFPageNumbering(inBlob);
-        Blob result = pn.addPageNumbers((int) startAtPage,
-                (int) startAtNumber, fontName, fontSize, hex255Color, pos);
+        Blob result = pn.addPageNumbers((int) startAtPage, (int) startAtNumber,
+                fontName, fontSize, hex255Color, pos);
         result.setFilename(inBlob.getFilename());
 
         return result;
     }
 
     @OperationMethod(collector = DocumentModelCollector.class)
-    public Blob run(DocumentModel inDoc) throws COSVisitorException, IOException {
+    public Blob run(DocumentModel inDoc) throws COSVisitorException,
+            IOException {
 
         Blob theBlob = (Blob) inDoc.getPropertyValue(PDFUtils.checkXPath(xpath));
         return run(theBlob);

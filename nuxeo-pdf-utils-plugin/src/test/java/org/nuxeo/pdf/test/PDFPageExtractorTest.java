@@ -168,7 +168,8 @@ public class PDFPageExtractorTest {
 
         extracted = pe.extract(1, 3);
         assertTrue(extracted instanceof FileBlob);
-        checkExtractedPdf(extracted, 3, "Creative Brief\nDo this\nLorem ipsum dolor sit amet");
+        checkExtractedPdf(extracted, 3,
+                "Creative Brief\nDo this\nLorem ipsum dolor sit amet");
         assertEquals(originalName + "-1-3.pdf", extracted.getFilename());
         assertEquals("application/pdf", extracted.getMimeType());
 
@@ -182,7 +183,8 @@ public class PDFPageExtractorTest {
 
         extracted = pe.extract(5, 9, "newpdf.pdf", "", "", "");
         assertTrue(extracted instanceof FileBlob);
-        checkExtractedPdf(extracted, 5, "ipsum\nBut Avoid this\nAt vero eos et accusamus");
+        checkExtractedPdf(extracted, 5,
+                "ipsum\nBut Avoid this\nAt vero eos et accusamus");
         assertEquals("newpdf.pdf", extracted.getFilename());
     }
 
@@ -193,7 +195,8 @@ public class PDFPageExtractorTest {
         String originalName = pdfFileBlob.getFilename().replace(".pdf", "");
         PDFPageExtractor pe = new PDFPageExtractor(pdfFileBlob);
 
-        extracted = pe.extract(5, 9, null, "One Upon a Time", "Fairyland", "Cool Author");
+        extracted = pe.extract(5, 9, null, "One Upon a Time", "Fairyland",
+                "Cool Author");
         assertTrue(extracted instanceof FileBlob);
         assertEquals(originalName + "-5-9.pdf", extracted.getFilename());
         PDDocument doc = PDDocument.load(extracted.getStream());
@@ -205,7 +208,6 @@ public class PDFPageExtractorTest {
         doc.close();
         createdPDDocs.remove(doc);
     }
-
 
     @Test
     public void testExtractPagesOperation_BlobInput() throws Exception {
@@ -220,16 +222,18 @@ public class PDFPageExtractorTest {
         chain = new OperationChain("testChain");
 
         chain.add(ExtractPDFPagesOp.ID).set("startPage", 1).set("endPage", 3);
-        Blob extracted = (Blob) automationService.run(ctx,  chain);
+        Blob extracted = (Blob) automationService.run(ctx, chain);
         assertNotNull(extracted);
         assertTrue(extracted instanceof FileBlob);
-        checkExtractedPdf(extracted, 3, "Creative Brief\nDo this\nLorem ipsum dolor sit amet");
+        checkExtractedPdf(extracted, 3,
+                "Creative Brief\nDo this\nLorem ipsum dolor sit amet");
         assertEquals(originalName + "-1-3.pdf", extracted.getFilename());
         assertEquals("application/pdf", extracted.getMimeType());
     }
 
     @Test
-    public void testExtractPagesOperationShouldFail_BlobInput() throws Exception {
+    public void testExtractPagesOperationShouldFail_BlobInput()
+            throws Exception {
 
         File f = FileUtils.getResourceFileFromContext(NOT_A_PDF);
         FileBlob fb = new FileBlob(f);
@@ -243,7 +247,7 @@ public class PDFPageExtractorTest {
 
         chain.add(ExtractPDFPagesOp.ID).set("startPage", 1).set("endPage", 3);
         try {
-            Blob extracted = (Blob) automationService.run(ctx,  chain);
+            Blob extracted = (Blob) automationService.run(ctx, chain);
             assertTrue("Running the chain should have fail", true);
         } catch (Exception e) {
             // We're good

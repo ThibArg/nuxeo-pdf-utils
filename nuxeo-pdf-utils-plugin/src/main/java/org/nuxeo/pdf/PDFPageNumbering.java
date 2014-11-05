@@ -33,7 +33,8 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- *
+ * Add page numbers to a PDF, with misc. paramegeres (font, size, color,
+ * position)
  *
  * @since 5.9.6
  */
@@ -61,8 +62,8 @@ public class PDFPageNumbering {
     }
 
     /**
-     * Add page numbers and returns a <i>new</i> Blob. Original blob is not modified.
-     * This code assumes:
+     * Add page numbers and returns a <i>new</i> Blob. Original blob is not
+     * modified. This code assumes:
      * <ul>
      * <li>There is no page numbers already (it always draw the numbers)</li>
      * <li>The pdf is not rotated</li>
@@ -95,10 +96,10 @@ public class PDFPageNumbering {
      *
      * @since 5.9.5
      */
-    public Blob addPageNumbers(int inStartAtPage,
-            int inStartAtNumber, String inFontName, float inFontSize,
-            String inHex255Color, PAGE_NUMBER_POSITION inPosition)
-            throws IOException, COSVisitorException {
+    public Blob addPageNumbers(int inStartAtPage, int inStartAtNumber,
+            String inFontName, float inFontSize, String inHex255Color,
+            PAGE_NUMBER_POSITION inPosition) throws IOException,
+            COSVisitorException {
 
         Blob result = null;
         PDDocument doc = null;
