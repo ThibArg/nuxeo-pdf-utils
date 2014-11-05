@@ -26,20 +26,16 @@ import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.BlobCollector;
-import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.pdf.PDFPageNumbering;
 import org.nuxeo.pdf.PDFPageNumbering.PAGE_NUMBER_POSITION;
-import org.nuxeo.pdf.PDFUtils;
 
 /**
  * Add page numbers to the PDF.
  *
- * Accepts either a Blob(s) or Document(s) as input
  */
-@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Add Page Numbers", description = "Add the page numbers to the pdf, using the misc. parameters. If the input is a document, the <code>xpath</code> parameter is used (default value: <code>file:content</code>. If the input parameter is a blob, <code>xpath</code> parameter is just ignored.")
+@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Add Page Numbers", description = "Add the page numbers to the pdf, using the misc. parameters.")
 public class AddPageNumbersOp {
 
     public static final String ID = "PDF.AddPageNumbers";
@@ -66,9 +62,6 @@ public class AddPageNumbersOp {
 
     @Param(name = "hex255Color", required = false, values = { "0xffffff" })
     protected String hex255Color = "0xffffff";
-
-    @Param(name = "xpath", required = false, values = { "file:content" })
-    protected String xpath = "file:content";
 
     @OperationMethod(collector = BlobCollector.class)
     public Blob run(Blob inBlob) throws IOException, COSVisitorException {
@@ -106,13 +99,5 @@ public class AddPageNumbersOp {
         result.setFilename(inBlob.getFilename());
 
         return result;
-    }
-
-    @OperationMethod(collector = DocumentModelCollector.class)
-    public Blob run(DocumentModel inDoc) throws COSVisitorException,
-            IOException {
-
-        Blob theBlob = (Blob) inDoc.getPropertyValue(PDFUtils.checkXPath(xpath));
-        return run(theBlob);
     }
 }

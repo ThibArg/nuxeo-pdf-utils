@@ -10,7 +10,7 @@ These operations can be used in Studio after importing their JSON definitions to
 _A quick reminder: To get the JSON definition of an operation, you can install the plug-in, start nuxeo server then go to {server:port}/nuxeo/site/automation/doc. All available operations are listed, find the one you are looking for and follow the links to get its JSON definition._
 
 * **`PDF: Add Page Numbers`** (id `PDF.AddPageNumbers`)
-  * Accepts a Blob or a document, returns a Blob
+  * Accepts a Blob, returns a Blob
   * The input blob must be a pdf
   * The returned blob contains the page numbers, displayed using the parameters (position, font, ...)
     * Notice the input blob is _not_ modified, a copy (+ page numbers) is returned
@@ -25,9 +25,6 @@ _A quick reminder: To get the JSON definition of an operation, you can install t
     * `hex255Color`
       * Expressed as either 0xrrggbb or #rrggbb (case insensitive)
       * Default value: 0xffffff
-    * `xpath`
-      * If the input is a document, `xpath` parameter is used (default value: `file:content`). If the input parameter is a blob, `xpath` is just ignored.
-
 
 * **`PDF: Extract Pages`** (id `PDF.AddPageNumbers`)
   * Accept either a blob or a document as input
