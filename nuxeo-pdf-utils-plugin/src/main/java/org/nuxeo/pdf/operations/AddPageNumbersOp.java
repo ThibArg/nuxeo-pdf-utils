@@ -45,8 +45,8 @@ public class AddPageNumbersOp {
     @Param(name = "startAtPage", required = false, values = { "1" })
     protected long startAtPage = 1;
 
-    @Param(name = "inStartAtNumber", required = false, values = { "1" })
-    protected long inStartAtNumber = 1;
+    @Param(name = "startAtNumber", required = false, values = { "1" })
+    protected long startAtNumber = 1;
 
     @Param(name = "position", required = false, widget = Constants.W_OPTION, values = {
             "Bottom right", "Bottom center", "Bottom left", "Top right",
@@ -93,7 +93,7 @@ public class AddPageNumbersOp {
         }
 
         Blob result = PDFUtils.addPageNumbers(inBlob, (int) startAtPage,
-                (int) inStartAtNumber, fontName, fontSize, hex255Color, pos);
+                (int) startAtNumber, fontName, fontSize, hex255Color, pos);
         result.setFilename(inBlob.getFilename());
 
         return result;

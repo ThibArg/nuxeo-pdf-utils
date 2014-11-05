@@ -208,7 +208,7 @@ public class PDFPageExtractorTest {
 
 
     @Test
-    public void testExtractePagesOperation_BlobInput() throws Exception {
+    public void testExtractPagesOperation_BlobInput() throws Exception {
 
         String originalName = pdfFileBlob.getFilename().replace(".pdf", "");
 
@@ -229,7 +229,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractePagesOperationShouldFail_BlobInput() throws Exception {
+    public void testExtractPagesOperationShouldFail_BlobInput() throws Exception {
 
         File f = FileUtils.getResourceFileFromContext(NOT_A_PDF);
         FileBlob fb = new FileBlob(f);
