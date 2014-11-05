@@ -42,9 +42,6 @@ public class AddPageNumbersOp {
     @Context
     protected CoreSession session;
 
-    @Param(name = "xpath", required = false, values = { "file:content" })
-    protected String xpath = "file:content";
-
     @Param(name = "startAtPage", required = false, values = { "1" })
     protected long startAtPage = 1;
 
@@ -52,7 +49,7 @@ public class AddPageNumbersOp {
     protected long inStartAtNumber = 1;
 
     @Param(name = "position", required = false, widget = Constants.W_OPTION, values = {
-            "Bottom right", "bottom center", "Bottom left", "Top right",
+            "Bottom right", "Bottom center", "Bottom left", "Top right",
             "Top center", "Top left" })
     String position = "Bottom right";
 
@@ -64,9 +61,6 @@ public class AddPageNumbersOp {
 
     @Param(name = "hex255Color", required = false, values = { "0xffffff" })
     protected String hex255Color = "0xffffff";
-
-    @Param(name = "save", required = false, values = { "true" })
-    protected boolean save = true;
 
     @OperationMethod(collector = BlobCollector.class)
     public Blob run(Blob inBlob) throws IOException, COSVisitorException {
