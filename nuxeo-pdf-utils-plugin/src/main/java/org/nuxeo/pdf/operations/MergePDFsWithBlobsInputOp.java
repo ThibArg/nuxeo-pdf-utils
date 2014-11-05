@@ -36,10 +36,10 @@ import org.nuxeo.pdf.PDFMerge;
  * (1) blobToAppendVarName, if used, then (2) toAppendListVarName if used
  *
  */
-@Operation(id = MergePDFsWithBlobsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Blob(s): Merge PDFs", description = "The input blob(s) always is(are) the first PDFs. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
+@Operation(id = MergePDFsWithBlobsInputOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Merge with Blob(s)", description = "The input blob(s) always is(are) the first PDFs. The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. Returns the final pdf.")
 public class MergePDFsWithBlobsInputOp {
 
-    public static final String ID = "Blob.MergePDFs";
+    public static final String ID = "PDF.MergeWithBlobs";
 
     @Context
     protected OperationContext ctx;

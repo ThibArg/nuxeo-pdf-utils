@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.util.PDFMergerUtility;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.core.api.Blob;
@@ -131,11 +130,6 @@ public class PDFMerge {
 
         Blob finalBlob = null;
 
-        inTitle = inTitle != null && !inTitle.isEmpty() ? inTitle : null;
-        inAuthor = inAuthor != null && !inAuthor.isEmpty() ? inAuthor : null;
-        inSubject = inSubject != null && !inSubject.isEmpty() ? inSubject
-                : null;
-
         switch (blobs.size()) {
         case 0:
             finalBlob = null;
@@ -158,16 +152,7 @@ public class PDFMerge {
 
             if (inTitle != null || inAuthor != null || inSubject != null) {
                 PDDocument finalDoc = PDDocument.load(tempFile);
-                PDDocumentInformation docInfo = finalDoc.getDocumentInformation();
-                if (inTitle != null) {
-                    docInfo.setTitle(inTitle);
-                }
-                if (inAuthor != null) {
-                    docInfo.setAuthor(inAuthor);
-                }
-                if (inSubject != null) {
-                    docInfo.setSubject(inSubject);
-                }
+                PDFUtils.setInfos(finalDoc, inTitle, inSubject, inAuthor);
                 finalDoc.save(tempFile);
                 finalDoc.close();
             }

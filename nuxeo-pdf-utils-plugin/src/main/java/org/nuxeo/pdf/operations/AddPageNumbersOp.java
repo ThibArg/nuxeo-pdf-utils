@@ -34,7 +34,7 @@ import org.nuxeo.pdf.PDFUtils.PAGE_NUMBER_POSITION;
 /**
  * Add page numbers to the pDF
  */
-@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "Add Page Numbers to PDF", description = "")
+@Operation(id = AddPageNumbersOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Add Page Numbers", description = "Add the page numbers to the pdf, using the misc. parameters")
 public class AddPageNumbersOp {
 
     public static final String ID = "PDF.AddPageNumbers";

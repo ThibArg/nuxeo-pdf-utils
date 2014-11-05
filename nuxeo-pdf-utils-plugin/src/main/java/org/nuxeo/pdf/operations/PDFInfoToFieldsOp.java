@@ -39,10 +39,10 @@ import org.nuxeo.pdf.PDFInfo;
  *
  * For values to use in the properties parameter, see PDFInfo#toHashMap
  */
-@Operation(id = PDFInfoToFieldsOp.ID, category = Constants.CAT_DOCUMENT, label = "PDF Info to Fields", description = "")
+@Operation(id = PDFInfoToFieldsOp.ID, category = Constants.CAT_DOCUMENT, label = "PDF: Info to Fields", description = "")
 public class PDFInfoToFieldsOp {
 
-    public static final String ID = "Document.PDFInfoToFields";
+    public static final String ID = "PDF.InfoToFields";
 
     @Context
     protected CoreSession session;

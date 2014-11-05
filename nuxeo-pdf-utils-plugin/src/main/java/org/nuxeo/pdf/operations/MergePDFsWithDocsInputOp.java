@@ -58,10 +58,10 @@ import org.nuxeo.pdf.PDFMerge;
  * <p>
  * Returns the final pdf.
  */
-@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "Document(s): Merge PDFs", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field (but it is ok for the input doc to have no blob). The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. It then append the blobs stored in the docs whose IDs are passed in <code>toAppendDocIDsVarName</code> (the same <code>xpath</code> is used). Returns the final pdf.")
+@Operation(id = MergePDFsWithDocsInputOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Merge with Blob(s)", description = "The input document(s) always is(are) the first PDFs, and their pdf is read in the <code>xpath</code> field (but it is ok for the input doc to have no blob). The operation appends the blob referenced in the <code>toAppendVarName</code> Context variable. It then appends all the blobs stored in the <code>toAppendListVarName</code> Context variable. It then append the blobs stored in the docs whose IDs are passed in <code>toAppendDocIDsVarName</code> (the same <code>xpath</code> is used). Returns the final pdf.")
 public class MergePDFsWithDocsInputOp {
 
-    public static final String ID = "Document.MergePDFs";
+    public static final String ID = "PDF.MergeWithDocs";
 
     @Context
     protected CoreSession session;

@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
@@ -61,22 +62,96 @@ public class PDFUtils {
         return result;
     }
 
-    /*
+    /**
+     * Create a temporary .pdf file and return a FileBlob built from this file.
+     *
+     * @param inPdfDoc
+     * @return FileBlob
+     * @throws IOException
+     * @throws COSVisitorException
+     *
+     */
+    public static FileBlob saveInTempFile(PDDocument inPdfDoc)
+            throws IOException, COSVisitorException {
+
+        FileBlob result = null;
+
+        File tempFile = File.createTempFile("nuxeo-pdfutils-", ".pdf");
+        inPdfDoc.save(tempFile);
+        result = new FileBlob(tempFile);
+        result.setMimeType("application/pdf");
+        Framework.trackFile(tempFile, result);
+
+        return result;
+    }
+
+    /**
+     * Convenience method: If a parameter is null or "", it is not modified
+     *
+     * @param inPdfDoc
+     * @param inTitle
+     * @param inSubject
+     * @param inAuthor
+     *
+     */
+    public static void setInfos(PDDocument inPdfDoc, String inTitle, String inSubject, String inAuthor) {
+
+        if(inTitle != null && inTitle.isEmpty()) {
+            inTitle = null;
+        }
+        if(inSubject != null && inSubject.isEmpty()) {
+            inSubject = null;
+        }
+        if(inAuthor != null && inAuthor.isEmpty()) {
+            inAuthor = null;
+        }
+
+        if (inTitle != null || inAuthor != null || inSubject != null) {
+
+            PDDocumentInformation docInfo = inPdfDoc.getDocumentInformation();
+            if (inTitle != null) {
+                docInfo.setTitle(inTitle);
+            }
+            if (inSubject != null) {
+                docInfo.setSubject(inSubject);
+            }
+            if (inAuthor != null) {
+                docInfo.setAuthor(inAuthor);
+            }
+            inPdfDoc.setDocumentInformation(docInfo);
+        }
+    }
+
+    /**
      * This code assumes:
+     * <ul>
+     * <li>There is no page numbers already (it always draw the numbers)</li>
+     * <li>The pdf is not rotated</li>
+     * <li>Default values apply:
+     * <ul>
+     * <li>inStartAtPage and inStartAtNumber are set to 1 if they are passed <
+     * 1.</li>
+     * <li>If inStartAtPage is > number of pages it also is reset to 1</li>
+     * <li>inFontName is set to "Helvetica" if "" or null</li>
+     * <li>inHex255Color is set to black if "", null or if its length < 6</li>
+     * <li>inPosition is set to BOTTOM_RIGHT if null</li>
+     * </ul>
+     * </li>
+     * <li></li>
+     * </ul>
      *
-     * - There is no page numbers already (it always draw the numbers)
+     * @param inBlob
+     * @param inStartAtPage
+     * @param inStartAtNumber
+     * @param inFontName
+     * @param inFontSize
+     * @param inHex255Color
+     * @param inPosition
+     * @return Blob
+     * @throws IOException
+     * @throws COSVisitorException
      *
-     * - The pdf is not rotated
-     *
-     * - Default values apply:
-     *
-     * * inStartAtPage and inStartAtNumber are set to 1 if they are passed < 1. If inStartAtPage is > number of pages it also is reset to 1
-     *
-     * * inFontName is set to "Helvetica" if "" or null
-     *
-     * * inHex255Color is set to black if "", null or if its length < 6
-     *
-     * * inPosition is set to BOTTOM_RIGHT if null
+     * @since TODO
      */
     public static Blob addPageNumbers(Blob inBlob, int inStartAtPage,
             int inStartAtNumber, String inFontName, float inFontSize,

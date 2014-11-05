@@ -11,5 +11,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
  oFieldsOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePDFsW
  ithBlobsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.AddP
  ageNumbersOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePD
- FsWithDocsInputOp.xml
+ FsWithDocsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Ex
+ tractPDFPagesOp.xml
 
