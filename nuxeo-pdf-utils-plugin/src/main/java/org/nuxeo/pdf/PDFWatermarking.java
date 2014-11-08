@@ -229,8 +229,6 @@ public class PDFWatermarking {
             }
 
             result = PDFUtils.saveInTempFile(pdfDoc);
-            pdfDoc.close();
-            pdfDoc = null;
 
         } catch (IOException | COSVisitorException e) {
             throw new ClientException(e);
