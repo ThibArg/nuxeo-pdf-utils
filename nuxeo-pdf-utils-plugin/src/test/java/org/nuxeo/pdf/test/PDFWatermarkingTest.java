@@ -29,6 +29,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.OperationChain;
+import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -37,6 +40,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.pdf.PDFWatermarking;
+import org.nuxeo.pdf.operations.WatermarkWitthTextOp;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -123,16 +127,6 @@ public class PDFWatermarkingTest {
         utils.cleanup();
     }
 
-    /*
-     * This one is for local test with human checking :-)
-     */
-    protected void saveBlobOnDesktop(Blob inBlob, String inFileName)
-            throws IOException {
-        File destFile = new File(System.getProperty("user.home"),
-                "Desktop/tests-add-page-numbers/" + inFileName);
-        inBlob.transferTo(destFile);
-    }
-
     protected void checkHasWatermarkOnAllPages(Blob inBlob, String inWatermark)
             throws Exception {
 
@@ -161,7 +155,9 @@ public class PDFWatermarkingTest {
         Blob result = pdfw.watermark();
 
         checkHasWatermarkOnAllPages(result, watermark);
-        // saveBlobOnDesktop(result, "test.pdf");
+        if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test", "test.pdf");
+        }
     }
 
     @Test
@@ -176,7 +172,9 @@ public class PDFWatermarkingTest {
         Blob result = pdfw.watermark();
 
         checkHasWatermarkOnAllPages(result, watermark);
-        // saveBlobOnDesktop(result, "test-images.pdf");
+        if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test", "test-images.pdf");
+        }
     }
 
     @Test
@@ -184,39 +182,69 @@ public class PDFWatermarkingTest {
 
         PDFWatermarking pdfw = new PDFWatermarking(pdfFileWithImagesBlob);
 
-        String watermark = java.util.UUID.randomUUID().toString().substring(1, 5);
+        String watermark = "© ACME - "
+                + java.util.UUID.randomUUID().toString().substring(1, 5);
 
         pdfw.setText(watermark).setXPosition(100).setYPosition(100).setAlphaColor(
                 0.3f).setFontSize(12f).setTextRotation(45);
         Blob result = pdfw.watermark();
 
-        //checkHasWatermarkOnAllPages(result, watermark);
-        //saveBlobOnDesktop(result, "test-images.pdf");
+        // When the text is rotated, extracting the full text form a page as is
+        // done in checkHasWatermarkOnAllPages() sometime does not find the
+        // value while it is here. It would require to extends PDFTextStripper
+        // and override processTextPosition. So it is a kind of TODO.
+        // checkHasWatermarkOnAllPages(result, watermark);
+        // if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+        //      utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+        //        "test-images-watermarked-rot.pdf");
+        // }
     }
 
     @Test
-    public void testShouldFailOnEmptyString() throws Exception {
+    public void testEmptyStringReturnsRawCopy() throws Exception {
 
         PDFWatermarking pdfw = new PDFWatermarking(pdfFileBlob);
+        String originalMd5 = utils.calculateMd5(pdfFileBlob);
 
         Blob result = null;
-
         pdfw.setText("");
-        try {
-            result = pdfw.watermark();
-            assertFalse("An error should have been raised for an empty string",
-                    true);
-        } catch (Exception e) {
-            // All good
-        }
+        result = pdfw.watermark();
 
-        pdfw.setText(null);
-        try {
-            result = pdfw.watermark();
-            assertFalse("An error should have been raised for a null string",
-                    true);
-        } catch (Exception e) {
-            // All good
-        }
+        assertEquals(originalMd5, utils.calculateMd5(result));
+    }
+
+    @Test
+    public void testWatermarkWithTextOperation() throws Exception {
+
+        Properties props = new Properties();
+        props.put("xPosition", "200");
+        props.put("yPosition", "300");
+        props.put("alphaColor", "0.9");
+        props.put("invertY", "true");
+        props.put("textRotation", "45");
+
+        String watermark = "© Toto -" + java.util.UUID.randomUUID().toString();
+
+        OperationChain chain;
+        OperationContext ctx = new OperationContext(coreSession);
+        assertNotNull(ctx);
+
+        ctx.setInput(pdfFileWithImagesBlob);
+        chain = new OperationChain("testChain");
+        chain.add(WatermarkWitthTextOp.ID).set("watermark", watermark).set(
+                "properties", props);
+        Blob result = (Blob) automationService.run(ctx, chain);
+        assertNotNull(result);
+
+        // When the text is rotated, extracting the full text form a page as is
+        // done in checkHasWatermarkOnAllPages() sometime does not find the
+        // value while it is here. It would require to extends PDFTextStripper
+        // and override processTextPosition. So it is a kind of TODO.
+        // checkHasWatermarkOnAllPages(result, watermark);
+        //
+        // if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+        //      utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+        //        "test-images-watermarked-rot-operation.pdf");
+        // }
     }
 }

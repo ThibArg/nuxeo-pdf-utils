@@ -21,13 +21,11 @@ import java.io.IOException;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.nuxeo.ecm.automation.core.Constants;
-import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.BlobCollector;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.pdf.PDFPageNumbering;
 import org.nuxeo.pdf.PDFPageNumbering.PAGE_NUMBER_POSITION;
 
@@ -39,9 +37,6 @@ import org.nuxeo.pdf.PDFPageNumbering.PAGE_NUMBER_POSITION;
 public class AddPageNumbersOp {
 
     public static final String ID = "PDF.AddPageNumbers";
-
-    @Context
-    protected CoreSession session;
 
     @Param(name = "startAtPage", required = false, values = { "1" })
     protected long startAtPage = 1;

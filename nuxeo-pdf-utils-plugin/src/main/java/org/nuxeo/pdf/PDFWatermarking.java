@@ -17,6 +17,7 @@
 
 package org.nuxeo.pdf;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,9 +35,13 @@ import org.apache.pdfbox.pdmodel.graphics.PDExtendedGraphicsState;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.pdf.PDFUtils;
+import org.nuxeo.runtime.api.Framework;
 
 /**
+ * This class adds a watermark to a Blob holding a PDF. It never changes the
+ * original Blob: It returns a watermarked copy of it.
  *
  * Setters return the PDFWatermark object so they can be chained
  *
@@ -80,31 +85,75 @@ public class PDFWatermarking {
 
     protected boolean invertY = DEFAULT_INVERT_Y;
 
+    /**
+     * Constructor
+     *
+     * @param inBlob
+     */
     public PDFWatermarking(Blob inBlob) {
 
         blob = inBlob;
     }
 
+    /**
+     * Constructor
+     *
+     * @param inDoc
+     * @param inXPath
+     */
     public PDFWatermarking(DocumentModel inDoc, String inXPath) {
 
         blob = (Blob) inDoc.getPropertyValue(PDFUtils.checkXPath(inXPath));
     }
 
+    /**
+     * Adds the watermark to the Blob passed to the constructor.
+     * <p>
+     * If no setter has been used, the DEFAULT_nnn values apply
+     * <p>
+     * If
+     * <code>text</text> is empty or null, a simple copy of the original Blob is returned
+     * <p>
+     * With thanks to the sample code found at https://issues.apache.org/jira/browse/PDFBOX-1176
+     * and to Jack (https://jackson-brain.com/a-better-simple-pdf-stamper-in-java/)
+     *
+     * @return a new Blob with the watermark on each page
+     *
+     * @throws ClientException
+     *
+     * @since 6.0
+     */
     public Blob watermark() throws ClientException {
 
         Blob result = null;
         PDDocument pdfDoc = null;
         PDPageContentStream contentStream = null;
 
-        if(text == null || text.isEmpty()) {
-            throw new ClientException("The stamp string should not be empty fr the watermaking");
+        if (text == null || text.isEmpty()) {
+            try {
+
+                File tempFile = File.createTempFile("nuxeo-pdfwatermarking-",
+                        ".pdf");
+                blob.transferTo(tempFile);
+                result = new FileBlob(tempFile);
+                // Just duplicate the info
+                result.setFilename(blob.getFilename());
+                result.setMimeType(blob.getMimeType());
+                result.setEncoding(blob.getEncoding());
+                Framework.trackFile(tempFile, result);
+
+                return result;
+
+            } catch (IOException e) {
+                throw new ClientException(e);
+            }
         }
 
-        /* Set up the graphic state */
-         // Define a new extended graphic state
-         PDExtendedGraphicsState extendedGraphicsState = new PDExtendedGraphicsState();
-         // Set the transparency/opacity
-         extendedGraphicsState.setNonStrokingAlphaConstant(alphaColor);
+        // Set up the graphic state to handle transparency
+        // Define a new extended graphic state
+        PDExtendedGraphicsState extendedGraphicsState = new PDExtendedGraphicsState();
+        // Set the transparency/opacity
+        extendedGraphicsState.setNonStrokingAlphaConstant(alphaColor);
 
         try {
 
@@ -116,94 +165,65 @@ public class PDFWatermarking {
             for (int i = 0; i < allPages.size(); i++) {
                 contentStream = null;
 
-                // create an empty page and a geo object to use for calcs
                 PDPage page = (PDPage) allPages.get(i);
                 PDRectangle pageSize = page.findMediaBox();
 
-                // Get the page resources.
                 PDResources resources = page.findResources();
                 // Get the defined graphic states.
-                Map graphicsStateDictionary = resources.getGraphicsStates();
+                HashMap<String, PDExtendedGraphicsState> graphicsStateDictionary = (HashMap<String, PDExtendedGraphicsState>) resources.getGraphicsStates();
                 if (graphicsStateDictionary != null) {
-                    graphicsStateDictionary.put("TransparentState", extendedGraphicsState);
+                    graphicsStateDictionary.put("TransparentState",
+                            extendedGraphicsState);
                     resources.setGraphicsStates(graphicsStateDictionary);
-                }
-                else {
+                } else {
                     Map<String, PDExtendedGraphicsState> m = new HashMap<>();
                     m.put("TransparentState", extendedGraphicsState);
                     resources.setGraphicsStates(m);
                 }
 
-                // are we inverting the y axis?
                 if (invertY) {
                     yPosition = pageSize.getHeight() - yPosition;
                 }
 
-                // calculate the width of the string according to the font
                 float stringWidth = font.getStringWidth(text) * fontSize
                         / 1000f;
 
-                // determine the rotation stuff. Is the the loaded page in
-                // landscape mode? (for axis and string dims)
                 int pageRot = page.findRotation();
                 boolean pageRotated = pageRot == 90 || pageRot == 270;
-
-                // are we rotating the text?
                 boolean textRotated = textRotation != 0 && textRotation != 360;
 
-                // calc the diff of rotations so the text stamps
                 int totalRot = pageRot - textRotation;
 
-                // calc the page dimensions
                 float pageWidth = pageRotated ? pageSize.getHeight()
                         : pageSize.getWidth();
                 float pageHeight = pageRotated ? pageSize.getWidth()
                         : pageSize.getHeight();
 
-                // determine the axis of rotation
                 double centeredXPosition = pageRotated ? pageHeight / 2f
                         : (pageWidth - stringWidth) / 2f;
                 double centeredYPosition = pageRotated ? (pageWidth - stringWidth) / 2f
                         : pageHeight / 2f;
 
-                // append the content to the existing stream
                 contentStream = new PDPageContentStream(pdfDoc, page, true,
                         true, true);
                 contentStream.beginText();
 
-                // set font and font size
                 contentStream.setFont(font, fontSize);
-
                 contentStream.appendRawCommands("/TransparentState gs\n");
-
-                // set the stroke (text)
                 contentStream.setNonStrokingColor(rgb[0], rgb[1], rgb[2]);
-                //Color color = new Color(rgb[0], rgb[1], rgb[2], (int) (alphaColor * 255));
-                //contentStream.setNonStrokingColor(color);
 
-                // if we are rotating, do it
                 if (pageRotated) {
-
-                    // rotate the text according to the calculations above
                     contentStream.setTextRotation(Math.toRadians(totalRot),
                             centeredXPosition, centeredYPosition);
-
                 } else if (textRotated) {
-
-                    // rotate the text according to the calculations above
                     contentStream.setTextRotation(Math.toRadians(textRotation),
                             xPosition, yPosition);
-
                 } else {
-
-                    // no rotate, just move it.
                     contentStream.setTextTranslation(xPosition, yPosition);
                 }
 
-                // stamp the damned text already
                 contentStream.drawString(text);
 
-                // close and clean up
                 contentStream.endText();
                 contentStream.close();
             }
@@ -231,6 +251,45 @@ public class PDFWatermarking {
             }
         }
         return result;
+    }
+
+    /*
+     * Utilities to handle null in setProperties()
+     */
+    protected float stringToFloat(String inValue) {
+        if(inValue == null) {
+            return 0f;
+        }
+
+        return Float.valueOf(inValue);
+    }
+    protected int stringToInt(String inValue) {
+        if(inValue == null) {
+            return 0;
+        }
+
+        return Integer.valueOf(inValue);
+    }
+    protected boolean stringToBoolean(String inValue) {
+        if(inValue == null) {
+            return false;
+        }
+
+        return Boolean.valueOf(inValue);
+    }
+
+    public PDFWatermarking setProperties(HashMap<String, String> inProps) {
+
+        setFontFamily(inProps.get("fontFamily"));
+        setFontSize(stringToFloat(inProps.get("fontSize")));
+        setTextRotation(stringToInt(inProps.get("textRotation")));
+        setTextColor(inProps.get("hex255Color"));
+        setAlphaColor(stringToFloat(inProps.get("alphaColor")));
+        setXPosition(stringToInt(inProps.get("xPosition")));
+        setYPosition(stringToInt(inProps.get("yPosition")));
+        setInvertY(stringToBoolean(inProps.get("invertY")));
+
+        return this;
     }
 
     public String getText() {
@@ -279,6 +338,7 @@ public class PDFWatermarking {
                 : inValue;
         return this;
     }
+
     public float getAlphaColor() {
         return alphaColor;
     }

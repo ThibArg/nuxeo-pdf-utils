@@ -139,16 +139,6 @@ public class PDFPageNumberingTest {
         utils.cleanup();
     }
 
-    /*
-     * This one is for local test with human checking :-)
-     */
-    protected void saveBlobOnDesktop(Blob inBlob, String inFileName)
-            throws IOException {
-        File destFile = new File(System.getProperty("user.home"),
-                "Desktop/tests-add-page-numbers/" + inFileName);
-        inBlob.transferTo(destFile);
-    }
-
     protected void testWithTheseParameters(int inStartAtPage,
             int inStartAtNumber, String inFontName, float inFontSize,
             String inHex255Color, PAGE_NUMBER_POSITION inPosition)
@@ -200,7 +190,7 @@ public class PDFPageNumberingTest {
                 strPosition = "bottom-right";
                 break;
             }
-            saveBlobOnDesktop(blobResult, strPosition + ".pdf");
+            utils.saveBlobOnDesktop(blobResult, "nuxeo-pdfutils-test", strPosition + ".pdf");
         }
 
     }

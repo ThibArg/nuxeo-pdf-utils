@@ -114,4 +114,14 @@ public class TestUtils {
 
         return md5;
     }
+
+    /*
+     * This one is for local test with human checking :-). Requires inFolderName to exist on your Desktop
+     */
+    protected void saveBlobOnDesktop(Blob inBlob, String inFolderName, String inFileName)
+            throws IOException {
+        File destFile = new File(System.getProperty("user.home"),
+                "Desktop/" + inFolderName + "/" + inFileName);
+        inBlob.transferTo(destFile);
+    }
 }

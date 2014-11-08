@@ -112,6 +112,31 @@ _A quick reminder: To get the JSON definition of an operation, you can install t
     ...etc...
     ```
 
+* **`PDF: Watermark with Text`** (id `PDF.WatermarkWithText`)
+  * Accepts a Blob, returns a Blob
+  * Returns a _new_ blob combining the input pdf and the `watermark` text set on every pages, using the different `properties`.
+  * If `watermark` is empty, a simple copy of the input blob is returned
+  * `properties` is a `key=value` set where `key` can be one of the following. When not used, a default value applies:
+    * `fontFamily` (default: "helvetica")
+    * `fontSize` (default: 36.0)
+    * `textRotation` (default: 0)
+    * `hex255Color` (default: "#000000")
+    * `alphaColor` (default: 0.5)
+    * `xPosition` (default: 0)
+    * `yPosition` (default: 0)
+    * `invertY` (default: "false")
+  * _More details about some `properties`_:
+    * `xPosition` and `yPosition` start at the _bottom-left corner_ of each page
+    * `alphaColor` is a float with any value between 0.0 and 1.0. Values < 0 or > 1 are reset to the default 0.5
+
+
+Properties must be one or more of the following (in parenthesis, the default
+ * value if the property is not used): <code>fontFamily</code> (Helvetica),
+ * <code>fontSize</code> (36), <code>textRotation</code> (0),
+ * <code>hex255Color</code> (#ffffff), <code>alphaColor</code> (0.5),
+ * <code>xPosition</code> (0), <code>yPosition</code> (0), <code>invertY</code>
+ * (false)
+
 
 ## License
 (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
