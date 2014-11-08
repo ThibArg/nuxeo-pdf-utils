@@ -117,7 +117,7 @@ _A quick reminder: To get the JSON definition of an operation, you can install t
   * Returns a _new_ blob combining the input pdf and the `watermark` text set on every pages, using the different `properties`.
   * If `watermark` is empty, a simple copy of the input blob is returned
   * `properties` is a `key=value` set where `key` can be one of the following. When not used, a default value applies:
-    * `fontFamily` (default: "helvetica")
+    * `fontFamily` (default: "Helvetica")
     * `fontSize` (default: 36.0)
     * `textRotation` (default: 0)
     * `hex255Color` (default: "#000000")
