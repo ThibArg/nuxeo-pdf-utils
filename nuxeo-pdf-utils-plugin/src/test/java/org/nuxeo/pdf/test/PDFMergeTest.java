@@ -21,8 +21,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -68,9 +66,7 @@ public class PDFMergeTest {
 
     protected static final String MERGEPDF_CHECK_PREFIX = "This is pdf ";
 
-    protected ArrayList<PDDocument> createdPDDocs = new ArrayList<PDDocument>();
-
-    protected ArrayList<File> createdTempFiles = new ArrayList<File>();
+    protected TestUtils utils;
 
     protected DocumentModel testDocsFolder, docMergePDF1, docMergePDF2,
             docMergePDF3;
@@ -116,6 +112,8 @@ public class PDFMergeTest {
     @Before
     public void setup() throws IOException {
 
+        utils = new TestUtils();
+
         assertNotNull(coreSession);
         assertNotNull(automationService);
 
@@ -137,17 +135,7 @@ public class PDFMergeTest {
         coreSession.removeDocument(testDocsFolder.getRef());
         coreSession.save();
 
-        try {
-            for (PDDocument pdfDoc : createdPDDocs) {
-                pdfDoc.close();
-            }
-
-            for (File f : createdTempFiles) {
-                f.delete();
-            }
-        } catch (Exception e) {
-            // Nothing
-        }
+        utils.cleanup();
     }
 
     /*
@@ -158,12 +146,12 @@ public class PDFMergeTest {
             throws IOException {
 
         File tempFile = File.createTempFile("testmergepdf", ".pdf");
-        createdTempFiles.add(tempFile);
+        utils.track(tempFile);
         inBlob.transferTo(tempFile);
 
         PDDocument doc = PDDocument.load(tempFile);
         assertNotNull(doc);
-        createdPDDocs.add(doc);
+        utils.track(doc);
 
         // 2 + 3 + 1
         if (jutsFirst2Pages) {
@@ -185,10 +173,10 @@ public class PDFMergeTest {
         }
 
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
 
         tempFile.delete();
-        createdTempFiles.remove(tempFile);
+        utils.untrack(tempFile);
 
     }
 

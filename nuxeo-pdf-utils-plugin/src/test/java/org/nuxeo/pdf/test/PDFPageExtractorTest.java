@@ -21,8 +21,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.util.PDFTextStripper;
@@ -63,9 +61,7 @@ public class PDFPageExtractorTest {
 
     protected FileBlob pdfFileBlob;
 
-    protected ArrayList<PDDocument> createdPDDocs = new ArrayList<PDDocument>();
-
-    protected ArrayList<File> createdTempFiles = new ArrayList<File>();
+    TestUtils utils;
 
     protected DocumentModel testDocsFolder;
 
@@ -82,12 +78,12 @@ public class PDFPageExtractorTest {
 
         PDDocument doc = PDDocument.load(pdfFile);
         assertNotNull(doc);
-        createdPDDocs.add(doc);
+        utils.track(doc);
 
         assertEquals(13, doc.getNumberOfPages());
 
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
     }
 
     /*
@@ -111,6 +107,8 @@ public class PDFPageExtractorTest {
     @Before
     public void setup() throws IOException {
 
+        utils = new TestUtils();
+
         assertNotNull(coreSession);
         assertNotNull(automationService);
 
@@ -131,24 +129,14 @@ public class PDFPageExtractorTest {
         coreSession.removeDocument(testDocsFolder.getRef());
         coreSession.save();
 
-        try {
-            for (PDDocument pdfDoc : createdPDDocs) {
-                pdfDoc.close();
-            }
-
-            for (File f : createdTempFiles) {
-                f.delete();
-            }
-        } catch (Exception e) {
-            // Nothing
-        }
+        utils.cleanup();
     }
 
     protected void checkExtractedPdf(Blob inBlob, int inExpectedPageCount,
             String inExpectedTextAtPos0) throws Exception {
 
         PDDocument doc = PDDocument.load(inBlob.getStream());
-        createdPDDocs.add(doc);
+        utils.track(doc);
 
         assertEquals(inExpectedPageCount, doc.getNumberOfPages());
 
@@ -156,7 +144,7 @@ public class PDFPageExtractorTest {
         assertEquals(0, txt.indexOf(inExpectedTextAtPos0));
 
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
     }
 
     @Test
@@ -200,13 +188,13 @@ public class PDFPageExtractorTest {
         assertTrue(extracted instanceof FileBlob);
         assertEquals(originalName + "-5-9.pdf", extracted.getFilename());
         PDDocument doc = PDDocument.load(extracted.getStream());
-        createdPDDocs.add(doc);
+        utils.track(doc);
         PDDocumentInformation docInfo = doc.getDocumentInformation();
         assertEquals("One Upon a Time", docInfo.getTitle());
         assertEquals("Fairyland", docInfo.getSubject());
         assertEquals("Cool Author", docInfo.getAuthor());
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
     }
 
     @Test

@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -29,7 +28,6 @@ import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,10 +70,6 @@ public class PDFInfoTest {
     protected File pdfFile;
 
     protected FileBlob pdfFileBlob;
-
-    protected ArrayList<PDDocument> createdPDDocs = new ArrayList<PDDocument>();
-
-    protected ArrayList<File> createdTempFiles = new ArrayList<File>();
 
     // For visually testing the result
     public boolean kDO_LOCAL_TEST_EXPORT_DESKTOP = false;
@@ -120,18 +114,6 @@ public class PDFInfoTest {
 
         coreSession.removeDocument(testDocsFolder.getRef());
         coreSession.save();
-
-        try {
-            for (PDDocument pdfDoc : createdPDDocs) {
-                pdfDoc.close();
-            }
-
-            for (File f : createdTempFiles) {
-                f.delete();
-            }
-        } catch (Exception e) {
-            // Nothing
-        }
     }
 
     @Test

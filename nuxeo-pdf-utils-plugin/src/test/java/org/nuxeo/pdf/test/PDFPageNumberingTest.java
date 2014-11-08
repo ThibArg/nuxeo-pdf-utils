@@ -20,10 +20,7 @@ package org.nuxeo.pdf.test;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
@@ -62,9 +59,7 @@ public class PDFPageNumberingTest {
 
     protected String md5OfThePdf;
 
-    protected ArrayList<PDDocument> createdPDDocs = new ArrayList<PDDocument>();
-
-    protected ArrayList<File> createdTempFiles = new ArrayList<File>();
+    protected TestUtils utils;
 
     // For visually testing the result
     public boolean kDO_LOCAL_TEST_EXPORT_DESKTOP = false;
@@ -77,26 +72,6 @@ public class PDFPageNumberingTest {
     @Inject
     AutomationService automationService;
 
-    protected String getFileMd5(File inFile) throws IOException {
-
-        String md5;
-
-        FileInputStream fis = new FileInputStream(inFile);
-        md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
-        fis.close();
-
-        return md5;
-    }
-
-    protected String getBlobMd5(Blob inBlob) throws IOException {
-
-        String md5;
-
-        md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(inBlob.getStream());
-
-        return md5;
-    }
-
     /*
      * The file must have 13 pages and no numbers at all
      */
@@ -104,7 +79,7 @@ public class PDFPageNumberingTest {
 
         PDDocument doc = PDDocument.load(pdfFile);
         assertNotNull(doc);
-        createdPDDocs.add(doc);
+        utils.track(doc);
 
         assertEquals(13, doc.getNumberOfPages());
 
@@ -116,7 +91,7 @@ public class PDFPageNumberingTest {
         }
 
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
     }
 
     /*
@@ -142,7 +117,7 @@ public class PDFPageNumberingTest {
 
         PDDocument doc = PDDocument.load(inDoc);
         assertNotNull(doc);
-        createdPDDocs.add(doc);
+        utils.track(doc);
 
         String text = extractText(doc, inPageNumber, inPageNumber);
         int pos = text.indexOf("" + inExpected);
@@ -150,11 +125,13 @@ public class PDFPageNumberingTest {
                 + inPageNumber, pos > -1);
 
         doc.close();
-        createdPDDocs.remove(doc);
+        utils.untrack(doc);
     }
 
     @Before
     public void setup() throws IOException {
+
+        utils = new TestUtils();
 
         assertNotNull(coreSession);
         assertNotNull(automationService);
@@ -166,7 +143,7 @@ public class PDFPageNumberingTest {
         testDocsFolder = coreSession.saveDocument(testDocsFolder);
 
         pdfFile = FileUtils.getResourceFileFromContext(THE_PDF);
-        md5OfThePdf = getFileMd5(pdfFile);
+        md5OfThePdf = utils.calculateMd5(pdfFile);
         pdfFileBlob = new FileBlob(pdfFile);
         checkPDFBeforeTest();
     }
@@ -177,17 +154,7 @@ public class PDFPageNumberingTest {
         coreSession.removeDocument(testDocsFolder.getRef());
         coreSession.save();
 
-        try {
-            for (PDDocument pdfDoc : createdPDDocs) {
-                pdfDoc.close();
-            }
-
-            for (File f : createdTempFiles) {
-                f.delete();
-            }
-        } catch (Exception e) {
-            // Nothing
-        }
+        utils.cleanup();
     }
 
     /*
@@ -211,7 +178,7 @@ public class PDFPageNumberingTest {
         blobResult = pn.addPageNumbers(inStartAtPage, inStartAtNumber,
                 inFontName, inFontSize, inHex255Color, inPosition);
         assertNotNull(blobResult);
-        assertNotSame(md5OfThePdf, getBlobMd5(blobResult));
+        assertNotSame(md5OfThePdf, utils.calculateMd5(blobResult));
 
         File tempFile = File.createTempFile("pdfutils-", ".pdf");
         blobResult.transferTo(tempFile);
