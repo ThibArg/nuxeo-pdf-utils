@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
-import org.apache.pdfbox.util.PDFTextStripper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,24 +85,6 @@ public class PDFPageExtractorTest {
         utils.untrack(doc);
     }
 
-    /*
-     * Utility. Extract the text in the given page(s)
-     */
-    protected String extractText(PDDocument inDoc, int startPage, int inEndPage)
-            throws IOException {
-
-        String txt = "";
-
-        inEndPage = inEndPage < startPage ? startPage : startPage;
-
-        PDFTextStripper stripper = new PDFTextStripper();
-        stripper.setStartPage(startPage);
-        stripper.setEndPage(inEndPage);
-        txt = stripper.getText(inDoc);
-
-        return txt;
-    }
-
     @Before
     public void setup() throws IOException {
 
@@ -140,7 +121,7 @@ public class PDFPageExtractorTest {
 
         assertEquals(inExpectedPageCount, doc.getNumberOfPages());
 
-        String txt = extractText(doc, 1, 1);
+        String txt = utils.extractText(doc, 1, 1);
         assertEquals(0, txt.indexOf(inExpectedTextAtPos0));
 
         doc.close();

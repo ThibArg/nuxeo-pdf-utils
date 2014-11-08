@@ -144,6 +144,7 @@ public class PDFUtilsTest {
         assertNotNull(fb);
         assertEquals("application/pdf", fb.getMimeType());
 
+        doc.close();
         utils.untrack(doc);
     }
 
@@ -181,6 +182,7 @@ public class PDFUtilsTest {
         assertEquals("The Subject", newDocInfo.getSubject());
         assertEquals("The Author", newDocInfo.getAuthor());
 
+        doc.close();
         utils.untrack(doc);
     }
 }

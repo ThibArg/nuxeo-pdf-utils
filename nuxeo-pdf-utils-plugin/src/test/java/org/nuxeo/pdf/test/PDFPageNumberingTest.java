@@ -94,24 +94,6 @@ public class PDFPageNumberingTest {
         utils.untrack(doc);
     }
 
-    /*
-     * Utility. Extract the text in the given page(s)
-     */
-    protected String extractText(PDDocument inDoc, int startPage, int inEndPage)
-            throws IOException {
-
-        String txt = "";
-
-        inEndPage = inEndPage < startPage ? startPage : startPage;
-
-        PDFTextStripper stripper = new PDFTextStripper();
-        stripper.setStartPage(startPage);
-        stripper.setEndPage(inEndPage);
-        txt = stripper.getText(inDoc);
-
-        return txt;
-    }
-
     protected void checkHasNumberInPage(File inDoc, int inExpected,
             int inPageNumber, String inPosition) throws IOException {
 
@@ -119,7 +101,7 @@ public class PDFPageNumberingTest {
         assertNotNull(doc);
         utils.track(doc);
 
-        String text = extractText(doc, inPageNumber, inPageNumber);
+        String text = utils.extractText(doc, inPageNumber, inPageNumber);
         int pos = text.indexOf("" + inExpected);
         assertTrue(inPosition + ", expecting " + inExpected + " for page "
                 + inPageNumber, pos > -1);

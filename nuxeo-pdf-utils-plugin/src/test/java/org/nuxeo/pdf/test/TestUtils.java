@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.util.PDFTextStripper;
 import org.nuxeo.ecm.core.api.Blob;
 
 /**
@@ -64,6 +65,7 @@ public class TestUtils {
                 // Nothing
             }
         }
+        createdPDDocs = new ArrayList<PDDocument>();
 
         for (File f : createdTempFiles) {
             try {
@@ -72,6 +74,25 @@ public class TestUtils {
                 // Nothing
             }
         }
+        createdTempFiles = new ArrayList<File>();
+    }
+
+    /*
+     * Utility. Extract the text in the given page(s)
+     */
+    protected String extractText(PDDocument inDoc, int startPage, int inEndPage)
+            throws IOException {
+
+        String txt = "";
+
+        inEndPage = inEndPage < startPage ? startPage : inEndPage;
+
+        PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setStartPage(startPage);
+        stripper.setEndPage(inEndPage);
+        txt = stripper.getText(inDoc);
+
+        return txt;
     }
 
     public String calculateMd5(File inFile) throws IOException {

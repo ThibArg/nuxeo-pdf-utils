@@ -24,7 +24,6 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,24 +77,6 @@ public class PDFMergeTest {
 
     @Inject
     AutomationService automationService;
-
-    /*
-     * Utility. Extract the text in the given page(s)
-     */
-    protected String extractText(PDDocument inDoc, int startPage, int inEndPage)
-            throws IOException {
-
-        String txt = "";
-
-        inEndPage = inEndPage < startPage ? startPage : startPage;
-
-        PDFTextStripper stripper = new PDFTextStripper();
-        stripper.setStartPage(startPage);
-        stripper.setEndPage(inEndPage);
-        txt = stripper.getText(inDoc);
-
-        return txt;
-    }
 
     protected DocumentModel createMergePDFDocument(String inWHichOne) {
 
@@ -161,14 +142,14 @@ public class PDFMergeTest {
         }
 
         String txt;
-        txt = extractText(doc, 1, 1);
+        txt = utils.extractText(doc, 1, 1);
         assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "1") > -1);
 
-        txt = extractText(doc, 3, 3);
+        txt = utils.extractText(doc, 3, 3);
         assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "2") > -1);
 
         if (!jutsFirst2Pages) {
-            txt = extractText(doc, 6, 6);
+            txt = utils.extractText(doc, 6, 6);
             assertTrue(txt.indexOf(MERGEPDF_CHECK_PREFIX + "3") > -1);
         }
 
