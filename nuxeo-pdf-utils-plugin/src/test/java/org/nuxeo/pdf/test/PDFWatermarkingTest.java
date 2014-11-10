@@ -21,7 +21,14 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.junit.After;
 import org.junit.Before;
@@ -40,7 +47,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.pdf.PDFWatermarking;
-import org.nuxeo.pdf.operations.WatermarkWitthTextOp;
+import org.nuxeo.pdf.operations.WatermarkWithTextOp;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -56,6 +63,16 @@ public class PDFWatermarkingTest {
     private static final String THE_PDF = "files/13-pages-no-page-numbers.pdf";
 
     private static final String PDF_WITH_IMAGES = "files/With-pictures.pdf";
+
+    private static final String PDF_FOR_WATERMARK = "files/Nuxeo-logo-transp-Gray.pdf";
+
+    private static final String IMAGE_FOR_WATERMARK_PNG = "files/Nuxeo-logo-transp-Gray.png";
+
+    private static final int IMAGE_FOR_WATERMARK_PNG_WIDTH = 201;
+
+    private static final int IMAGE_FOR_WATERMARK_PNG_HEIGHT = 78;
+
+    private static final String IMAGE_FOR_WATERMARK_JPEG = "files/Nuxeo-logo-Gray.jpg";
 
     protected File pdfFile;
 
@@ -155,7 +172,7 @@ public class PDFWatermarkingTest {
         Blob result = pdfw.watermark();
 
         checkHasWatermarkOnAllPages(result, watermark);
-        if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
             utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test", "test.pdf");
         }
     }
@@ -172,8 +189,9 @@ public class PDFWatermarkingTest {
         Blob result = pdfw.watermark();
 
         checkHasWatermarkOnAllPages(result, watermark);
-        if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
-            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test", "test-images.pdf");
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+                    "test-images.pdf");
         }
     }
 
@@ -195,8 +213,8 @@ public class PDFWatermarkingTest {
         // and override processTextPosition. So it is a kind of TODO.
         // checkHasWatermarkOnAllPages(result, watermark);
         // if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
-        //      utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
-        //        "test-images-watermarked-rot.pdf");
+        // utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+        // "test-images-watermarked-rot.pdf");
         // }
     }
 
@@ -231,7 +249,7 @@ public class PDFWatermarkingTest {
 
         ctx.setInput(pdfFileWithImagesBlob);
         chain = new OperationChain("testChain");
-        chain.add(WatermarkWitthTextOp.ID).set("watermark", watermark).set(
+        chain.add(WatermarkWithTextOp.ID).set("watermark", watermark).set(
                 "properties", props);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
@@ -243,8 +261,117 @@ public class PDFWatermarkingTest {
         // checkHasWatermarkOnAllPages(result, watermark);
         //
         // if(kDO_LOCAL_TEST_EXPORT_DESKTOP) {
-        //      utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
-        //        "test-images-watermarked-rot-operation.pdf");
+        // utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+        // "test-images-watermarked-rot-operation.pdf");
         // }
+    }
+
+    @Test
+    public void testPdfOverlay() throws Exception {
+
+        File overlayFile = FileUtils.getResourceFileFromContext(PDF_FOR_WATERMARK);
+        FileBlob overlayBlob = new FileBlob(overlayFile);
+
+        PDFWatermarking pdfw = new PDFWatermarking(pdfFileBlob);
+        Blob result = pdfw.watermarkWithPdf(overlayBlob);
+
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+                    "test-images-withOverlayPDF.pdf");
+        }
+    }
+
+    /*
+     * Just checking on width/height here.
+     */
+    protected void checkHasImage(Blob inBlob, int inExpectedWidth,
+            int inExpectedHeight) throws Exception {
+
+        PDDocument doc = PDDocument.load(inBlob.getStream());
+        utils.track(doc);
+
+        List<?> allPages = doc.getDocumentCatalog().getAllPages();
+        int max = allPages.size();
+        for (int i = 1; i < max; i++) {
+            PDPage page = (PDPage) allPages.get(i);
+
+            PDResources pdResources = page.getResources();
+            Map<String, PDXObject> allXObjects = pdResources.getXObjects();
+            assertNotNull(allXObjects);
+
+            boolean gotIt = false;
+            for (Map.Entry<String, PDXObject> entry : allXObjects.entrySet()) {
+                PDXObject xobject = entry.getValue();
+                if (xobject instanceof PDXObjectImage) {
+                    PDXObjectImage pdxObjectImage = (PDXObjectImage) xobject;
+                    if (inExpectedWidth == pdxObjectImage.getWidth()
+                            && inExpectedHeight == pdxObjectImage.getHeight()) {
+                        gotIt = true;
+                        break;
+                    }
+                }
+            }
+            assertTrue("Page " + i + "does not have the image", gotIt);
+        }
+
+        doc.close();
+        utils.untrack(doc);
+    }
+
+    @Test
+    public void testWatermarkWithImagePNG() throws Exception {
+
+        File overlayPictureFile = FileUtils.getResourceFileFromContext(IMAGE_FOR_WATERMARK_PNG);
+        FileBlob overlayPictureBlob = new FileBlob(overlayPictureFile);
+
+        PDFWatermarking pdfw = new PDFWatermarking(pdfFileBlob);
+        Blob result = pdfw.watermarkWithImage(overlayPictureBlob, 200, 200,
+                0.5f);
+
+        checkHasImage(result, IMAGE_FOR_WATERMARK_PNG_WIDTH,
+                IMAGE_FOR_WATERMARK_PNG_HEIGHT);
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+                    "test-images-withOverlayPNG.pdf");
+        }
+
+    }
+
+    @Test
+    public void testWatermarkWithImagePNG_2() throws Exception {
+
+        File overlayPictureFile = FileUtils.getResourceFileFromContext(IMAGE_FOR_WATERMARK_PNG);
+        FileBlob overlayPictureBlob = new FileBlob(overlayPictureFile);
+
+        PDFWatermarking pdfw = new PDFWatermarking(pdfFileWithImagesBlob);
+        Blob result = pdfw.watermarkWithImage(overlayPictureBlob, 200, 200,
+                0.5f);
+
+        checkHasImage(result, IMAGE_FOR_WATERMARK_PNG_WIDTH,
+                IMAGE_FOR_WATERMARK_PNG_HEIGHT);
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+                    "test-images-withOverlayPNG.pdf");
+        }
+
+    }
+
+    @Test
+    public void testWatermarkWithImageJPEG() throws Exception {
+
+        File overlayPictureFile = FileUtils.getResourceFileFromContext(IMAGE_FOR_WATERMARK_JPEG);
+        FileBlob overlayPictureBlob = new FileBlob(overlayPictureFile);
+
+        PDFWatermarking pdfw = new PDFWatermarking(pdfFileBlob);
+        Blob result = pdfw.watermarkWithImage(overlayPictureBlob, 200, 200,
+                4f);
+
+        checkHasImage(result, IMAGE_FOR_WATERMARK_PNG_WIDTH,
+                IMAGE_FOR_WATERMARK_PNG_HEIGHT);
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+            utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
+                    "test-images-withOverlayJPEG.pdf");
+        }
+
     }
 }

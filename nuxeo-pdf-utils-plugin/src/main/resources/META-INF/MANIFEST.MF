@@ -13,5 +13,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
  ageNumbersOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePD
  FsWithDocsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Ex
  tractPDFPagesOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wate
- rmarkWitthTextOp.xml
+ rmarkWithTextOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wate
+ rmarkWithImageOp.xml
 

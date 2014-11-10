@@ -21,6 +21,7 @@ import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
+import org.nuxeo.ecm.automation.core.collectors.BlobCollector;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.pdf.PDFWatermarking;
@@ -40,8 +41,8 @@ import org.nuxeo.pdf.PDFWatermarking;
  * (false)
  *
  */
-@Operation(id = WatermarkWitthTextOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Watermark with Text", description = "Return a <i>new</i> blob combining the input pdf and the <code>watermark</code> text, using the different properties. Properties must be one or more of the following (in parenthesis, the default value if the property is not used): <code>fontFamily</code> (Helvetica), <code>fontSize</code> (36), <code>textRotation</code> (0), <code>hex255Color</code> (#000000), <code>alphaColor</code> (0.5), <code>xPosition</code> (0), <code>yPosition</code> (0), <code>invertY</code> (false). <code>xPosition</code> and <code>yPosition</code> start at the <i>bottom-left</i> corner of the page. If <code>watermark</code> is empty, a simple copy o the input blob is returned")
-public class WatermarkWitthTextOp {
+@Operation(id = WatermarkWithTextOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Watermark with Text", description = "Return a <i>new</i> blob combining the input pdf and the <code>watermark</code> text, using the different properties. Properties must be one or more of the following (in parenthesis, the default value if the property is not used): <code>fontFamily</code> (Helvetica), <code>fontSize</code> (36), <code>textRotation</code> (0), <code>hex255Color</code> (#000000), <code>alphaColor</code> (0.5), <code>xPosition</code> (0), <code>yPosition</code> (0), <code>invertY</code> (false). <code>xPosition</code> and <code>yPosition</code> start at the <i>bottom-left</i> corner of the page. If <code>watermark</code> is empty, a simple copy o the input blob is returned")
+public class WatermarkWithTextOp {
 
     public static final String ID = "PDF.WatermarkWithText";
 
@@ -51,7 +52,7 @@ public class WatermarkWitthTextOp {
     @Param(name = "properties", required = false)
     protected Properties properties;
 
-    @OperationMethod
+    @OperationMethod(collector=BlobCollector.class)
     public Blob run(Blob inBlob) {
 
         Blob result = null;

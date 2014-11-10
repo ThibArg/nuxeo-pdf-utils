@@ -119,4 +119,17 @@ public class PDFUtils {
         }
         return inXPath;
     }
+
+    public static void closeSilently(PDDocument...inPdfDocs) {
+
+        for(PDDocument theDoc : inPdfDocs) {
+            if(theDoc != null) {
+                try {
+                    theDoc.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+        }
+    }
 }

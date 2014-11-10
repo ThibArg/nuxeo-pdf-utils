@@ -17,12 +17,16 @@
 
 package org.nuxeo.pdf;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
+import org.apache.pdfbox.Overlay;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -32,6 +36,8 @@ import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.PDExtendedGraphicsState;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDPixelMap;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -162,7 +168,8 @@ public class PDFWatermarking {
             int[] rgb = PDFUtils.hex255ToRGB(hex255Color);
 
             List<?> allPages = pdfDoc.getDocumentCatalog().getAllPages();
-            for (int i = 0; i < allPages.size(); i++) {
+            int max = allPages.size();
+            for (int i = 0; i < max; i++) {
                 contentStream = null;
 
                 PDPage page = (PDPage) allPages.get(i);
@@ -226,6 +233,7 @@ public class PDFWatermarking {
 
                 contentStream.endText();
                 contentStream.close();
+                contentStream = null;
             }
 
             result = PDFUtils.saveInTempFile(pdfDoc);
@@ -240,14 +248,78 @@ public class PDFWatermarking {
                     // Ignore
                 }
             }
-            if (pdfDoc != null) {
+            PDFUtils.closeSilently(pdfDoc);
+        }
+        return result;
+    }
+
+    public Blob watermarkWithPdf(Blob inBlob) throws ClientException{
+
+        Blob result = null;
+        PDDocument pdfDoc = null;
+        PDDocument pdfOverlayDoc = null;
+
+        try {
+            pdfDoc = PDDocument.load(blob.getStream());
+            pdfOverlayDoc = PDDocument.load(inBlob.getStream());
+
+            Overlay overlay = new Overlay();
+            overlay.overlay(pdfOverlayDoc, pdfDoc);
+
+            result = PDFUtils.saveInTempFile(pdfDoc);
+
+        } catch (IOException | COSVisitorException e) {
+            throw new ClientException(e);
+        } finally {
+           PDFUtils.closeSilently(pdfDoc, pdfOverlayDoc);
+        }
+
+        return result;
+    }
+
+    public Blob watermarkWithImage(Blob inBlob, int x, int y, float scale) throws ClientException{
+
+        Blob result = null;
+        PDDocument pdfDoc = null;
+        PDPageContentStream contentStream = null;
+
+        scale = (scale <= 0f) ? 1.0f : scale;
+
+        try {
+
+            BufferedImage tmp_image = ImageIO.read(inBlob.getStream());
+
+            pdfDoc = PDDocument.load(blob.getStream());
+            PDXObjectImage ximage = new PDPixelMap(pdfDoc, tmp_image);
+
+            List<?> allPages = pdfDoc.getDocumentCatalog().getAllPages();
+            int max = allPages.size();
+            for (int i = 0; i < max; i++) {
+                PDPage page = (PDPage) allPages.get(i);
+
+                contentStream = new PDPageContentStream(pdfDoc, page, true, true);
+                contentStream.endMarkedContentSequence();
+                contentStream.drawXObject(ximage, x, y, ximage.getWidth()*scale, ximage.getHeight()*scale);
+                contentStream.close();
+                contentStream = null;
+            }
+
+            result = PDFUtils.saveInTempFile(pdfDoc);
+
+        } catch (IOException | COSVisitorException e) {
+            throw new ClientException(e);
+        } finally {
+            if (contentStream != null) {
                 try {
-                    pdfDoc.close();
+                    contentStream.close();
                 } catch (IOException e) {
                     // Ignore
                 }
             }
+
+           PDFUtils.closeSilently(pdfDoc);
         }
+
         return result;
     }
 

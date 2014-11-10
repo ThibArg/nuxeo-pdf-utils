@@ -129,13 +129,15 @@ _A quick reminder: To get the JSON definition of an operation, you can install t
     * `xPosition` and `yPosition` start at the _bottom-left corner_ of each page
     * `alphaColor` is a float with any value between 0.0 and 1.0. Values < 0 or > 1 are reset to the default 0.5
 
-
-Properties must be one or more of the following (in parenthesis, the default
- * value if the property is not used): <code>fontFamily</code> (Helvetica),
- * <code>fontSize</code> (36), <code>textRotation</code> (0),
- * <code>hex255Color</code> (#ffffff), <code>alphaColor</code> (0.5),
- * <code>xPosition</code> (0), <code>yPosition</code> (0), <code>invertY</code>
- * (false)
+* **`PDF: Watermark with Image`** (id `PDF.WatermarkWithImage`)
+  * Accepts a Blob, returns a Blob
+  * Returns a _new_ blob combining the input pdf and an image set on every page (using the `x`, `y`and `scale` parameters)
+  * The image to use for the watermark can be one of the following:
+    * `imageContextVarName`: A Context variable which references a Blob containing the image. Pass
+    * `imageDocRef`: The path or the ID of a document whose `file:content` field contains the image to use
+    * _Notice_: The operation first checks for `imageContextVarName`.
+  * `x` and `y` start at the bottom-left of the page
+  * Dimensions of the image will be * by `scale` (so 1.0 means "Original size", 0.5 means half the size. 4 means four time the size, ...)
 
 
 ## License
