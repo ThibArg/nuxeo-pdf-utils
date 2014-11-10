@@ -23,7 +23,11 @@ import java.util.ArrayList;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 
 /**
  *
@@ -116,12 +120,26 @@ public class TestUtils {
     }
 
     /*
-     * This one is for local test with human checking :-). Requires inFolderName to exist on your Desktop
+     * This one is for local test with human checking :-). Requires inFolderName
+     * to exist on your Desktop
      */
-    protected void saveBlobOnDesktop(Blob inBlob, String inFolderName, String inFileName)
-            throws IOException {
-        File destFile = new File(System.getProperty("user.home"),
-                "Desktop/" + inFolderName + "/" + inFileName);
+    public void saveBlobOnDesktop(Blob inBlob, String inFolderName,
+            String inFileName) throws IOException {
+        File destFile = new File(System.getProperty("user.home"), "Desktop/"
+                + inFolderName + "/" + inFileName);
         inBlob.transferTo(destFile);
+    }
+
+    public DocumentModel createDocumentFromFile(CoreSession inSession,
+            DocumentModel inParent, String inType, String inResourceFilePath) {
+
+        File f = FileUtils.getResourceFileFromContext(inResourceFilePath);
+
+        DocumentModel doc = inSession.createDocumentModel(
+                inParent.getPathAsString(), f.getName(), inType);
+        doc.setPropertyValue("dc:title", f.getName());
+        doc.setPropertyValue("file:content", new FileBlob(f));
+        return inSession.createDocument(doc);
+
     }
 }

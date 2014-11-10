@@ -28,10 +28,10 @@ import org.nuxeo.pdf.PDFWatermarking;
 
 /**
  * Return a <i>new</i> blob combining the input pdf and the
- * <code>watermark</code> text, using the different <code>properties</code> (default values
- * apply). Notice <code>xPosition</code> and <code>yPosition</code> start at the
- * bottom-left corner. If <code>watermark</code> is empty, a simple copy o the
- * input blob is returned
+ * <code>watermark</code> text, using the different <code>properties</code>
+ * (default values apply). Notice <code>xPosition</code> and
+ * <code>yPosition</code> start at the bottom-left corner. If
+ * <code>watermark</code> is empty, a simple copy o the input blob is returned
  *
  * Properties must be one or more of the following (in parenthesis, the default
  * value if the property is not used): <code>fontFamily</code> (Helvetica),
@@ -47,12 +47,12 @@ public class WatermarkWithTextOp {
     public static final String ID = "PDF.WatermarkWithText";
 
     @Param(name = "watermark", required = true)
-    protected String watermark;
+    protected String watermark = "";
 
     @Param(name = "properties", required = false)
     protected Properties properties;
 
-    @OperationMethod(collector=BlobCollector.class)
+    @OperationMethod(collector = BlobCollector.class)
     public Blob run(Blob inBlob) {
 
         Blob result = null;

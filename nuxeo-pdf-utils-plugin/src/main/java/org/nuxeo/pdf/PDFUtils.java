@@ -18,9 +18,17 @@ package org.nuxeo.pdf;
 
 import java.io.File;
 import java.io.IOException;
+
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.runtime.api.Framework;
 
@@ -120,16 +128,50 @@ public class PDFUtils {
         return inXPath;
     }
 
-    public static void closeSilently(PDDocument...inPdfDocs) {
+    public static void closeSilently(PDDocument... inPdfDocs) {
 
-        for(PDDocument theDoc : inPdfDocs) {
-            if(theDoc != null) {
+        for (PDDocument theDoc : inPdfDocs) {
+            if (theDoc != null) {
                 try {
                     theDoc.close();
                 } catch (IOException e) {
                     // Ignore
                 }
             }
+        }
+    }
+
+    public static class TOTO_UnrestrictedGetBlobForDocumentIdOrPath extends
+            UnrestrictedSessionRunner {
+
+        protected String idOrPath;
+
+        protected DocumentModel doc;
+
+        protected Blob blob;
+
+        protected CoreSession session;
+
+        public TOTO_UnrestrictedGetBlobForDocumentIdOrPath(
+                CoreSession inSession, String inIdOrPath) {
+            super(inSession);
+
+            session = inSession;
+            idOrPath = inIdOrPath;
+        }
+
+        @Override
+        public void run() throws ClientException {
+            if (idOrPath.startsWith("/")) {
+                doc = session.getDocument(new PathRef(idOrPath));
+            } else {
+                doc = session.getDocument(new IdRef(idOrPath));
+            }
+            blob = (Blob) doc.getPropertyValue("file:content");
+        }
+
+        public Blob getBlob() {
+            return blob;
         }
     }
 }

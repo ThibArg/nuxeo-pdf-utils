@@ -253,7 +253,7 @@ public class PDFWatermarking {
         return result;
     }
 
-    public Blob watermarkWithPdf(Blob inBlob) throws ClientException{
+    public Blob watermarkWithPdf(Blob inBlob) throws ClientException {
 
         Blob result = null;
         PDDocument pdfDoc = null;
@@ -271,13 +271,14 @@ public class PDFWatermarking {
         } catch (IOException | COSVisitorException e) {
             throw new ClientException(e);
         } finally {
-           PDFUtils.closeSilently(pdfDoc, pdfOverlayDoc);
+            PDFUtils.closeSilently(pdfDoc, pdfOverlayDoc);
         }
 
         return result;
     }
 
-    public Blob watermarkWithImage(Blob inBlob, int x, int y, float scale) throws ClientException{
+    public Blob watermarkWithImage(Blob inBlob, int x, int y, float scale)
+            throws ClientException {
 
         Blob result = null;
         PDDocument pdfDoc = null;
@@ -297,9 +298,18 @@ public class PDFWatermarking {
             for (int i = 0; i < max; i++) {
                 PDPage page = (PDPage) allPages.get(i);
 
-                contentStream = new PDPageContentStream(pdfDoc, page, true, true);
+                contentStream = new PDPageContentStream(pdfDoc, page, true,
+                        true);
                 contentStream.endMarkedContentSequence();
-                contentStream.drawXObject(ximage, x, y, ximage.getWidth()*scale, ximage.getHeight()*scale);
+                contentStream.drawXObject(ximage, x, y, ximage.getWidth()
+                        * scale, ximage.getHeight() * scale);
+                /*
+                 * AffineTransform at = new AffineTransform(ximage.getWidth() *
+                 * scale, 200, 200, ximage.getHeight() * scale, x, y);
+                 * at.rotate(Math.toRadians(90));
+                 * contentStream.drawXObject(ximage, at);
+                 */
+
                 contentStream.close();
                 contentStream = null;
             }
@@ -317,7 +327,7 @@ public class PDFWatermarking {
                 }
             }
 
-           PDFUtils.closeSilently(pdfDoc);
+            PDFUtils.closeSilently(pdfDoc);
         }
 
         return result;
@@ -327,21 +337,23 @@ public class PDFWatermarking {
      * Utilities to handle null in setProperties()
      */
     protected float stringToFloat(String inValue) {
-        if(inValue == null) {
+        if (inValue == null) {
             return 0f;
         }
 
         return Float.valueOf(inValue);
     }
+
     protected int stringToInt(String inValue) {
-        if(inValue == null) {
+        if (inValue == null) {
             return 0;
         }
 
         return Integer.valueOf(inValue);
     }
+
     protected boolean stringToBoolean(String inValue) {
-        if(inValue == null) {
+        if (inValue == null) {
             return false;
         }
 

@@ -48,19 +48,19 @@ public class ExtractPDFPagesOp {
     protected long endPage;
 
     @Param(name = "fileName", required = false)
-    protected String fileName;
+    protected String fileName = "";
 
     @Param(name = "pdfTitle", required = false)
-    protected String pdfTitle;
+    protected String pdfTitle = "";
 
     @Param(name = "pdfSubject", required = false)
     protected String pdfSubject;
 
     @Param(name = "pdfAuthor", required = false)
-    protected String pdfAuthor;
+    protected String pdfAuthor = "";
 
     @Param(name = "xpath", required = false, values = { "file:content" })
-    protected String xpath;
+    protected String xpath = "";
 
     @OperationMethod
     public Blob run(Blob inBlob) {

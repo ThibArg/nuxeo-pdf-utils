@@ -77,25 +77,25 @@ public class MergePDFsWithDocsInputOp {
     String xpath = "file:content";
 
     @Param(name = "toAppendVarName", required = false)
-    protected String toAppendVarName;
+    protected String toAppendVarName = "";
 
     @Param(name = "toAppendListVarName", required = false)
-    protected String toAppendListVarName;
+    protected String toAppendListVarName = "";
 
     @Param(name = "toAppendDocIDsVarName", required = false)
-    protected String toAppendDocIDsVarName;
+    protected String toAppendDocIDsVarName = "";
 
     @Param(name = "fileName", required = false)
-    protected String fileName;
+    protected String fileName = "";
 
     @Param(name = "pdfTitle", required = false)
-    protected String pdfTitle;
+    protected String pdfTitle = "";
 
     @Param(name = "pdfSubject", required = false)
-    protected String pdfSubject;
+    protected String pdfSubject = "";
 
     @Param(name = "pdfAuthor", required = false)
-    protected String pdfAuthor;
+    protected String pdfAuthor = "";
 
     @OperationMethod
     public Blob run(DocumentModel inDoc) throws ClientException {

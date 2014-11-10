@@ -190,7 +190,8 @@ public class PDFPageNumberingTest {
                 strPosition = "bottom-right";
                 break;
             }
-            utils.saveBlobOnDesktop(blobResult, "nuxeo-pdfutils-test", strPosition + ".pdf");
+            utils.saveBlobOnDesktop(blobResult, "nuxeo-pdfutils-test",
+                    strPosition + ".pdf");
         }
 
     }

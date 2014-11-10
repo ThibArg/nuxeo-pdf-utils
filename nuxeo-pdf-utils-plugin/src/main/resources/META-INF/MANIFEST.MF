@@ -14,5 +14,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
  FsWithDocsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Ex
  tractPDFPagesOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wate
  rmarkWithTextOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wate
- rmarkWithImageOp.xml
+ rmarkWithImageOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wat
+ ermarkWithPDFOp.xml
 

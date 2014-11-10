@@ -133,11 +133,24 @@ _A quick reminder: To get the JSON definition of an operation, you can install t
   * Accepts a Blob, returns a Blob
   * Returns a _new_ blob combining the input pdf and an image set on every page (using the `x`, `y`and `scale` parameters)
   * The image to use for the watermark can be one of the following:
-    * `imageContextVarName`: A Context variable which references a Blob containing the image. Pass
+    * `imageContextVarName`: A Context variable which references a Blob containing the image.
     * `imageDocRef`: The path or the ID of a document whose `file:content` field contains the image to use
+      * _Notice_: If `imageDocRef`` is used, an `UnrestrictedSession` fetches its blob, so the PDF can be watermarked even if current user has not enough right to read the watermark itself.
     * _Notice_: The operation first checks for `imageContextVarName`.
   * `x` and `y` start at the bottom-left of the page
   * Dimensions of the image will be * by `scale` (so 1.0 means "Original size", 0.5 means half the size. 4 means four time the size, ...)
+
+* **`PDF: Watermark with PDF`** (id `PDF.WatermarkWithPDF`)
+  * Accepts a Blob, returns a Blob
+  * Returns a _new_ blob combining the input pdf and an overlayed PDF on every page
+  * The PDF to use for the watermark can be one of the following:
+    * `pdfContextVarName`: A Context variable which references a Blob containing the PDF.
+    * `pdfDocRef`: The path or the ID of a document whose `file:content` field contains the PDF to use
+      * _Notice_: If `pdfDocRef`` is used, an `UnrestrictedSession` fetches its blob, so the PDF can be watermarked even if current user has not enough right to read the watermark itself.
+    * _Notice_: The operation first checks for `pdfContextVarName`.
+  * This operation uses `PDFBox` to overlay the PDF. The count of pages in each PDF can be different. Basically, the PDF to overlay will be repeated over the PDF to watermark. So for a final PDF of 10 pages:
+    * If the overlay has one single page, this page is overlayed on the 10 pages
+    * If the overlay has 3 pages, then the overly will be made with pages 1 2 3 1 2 3 1 2 3 1
 
 
 ## License

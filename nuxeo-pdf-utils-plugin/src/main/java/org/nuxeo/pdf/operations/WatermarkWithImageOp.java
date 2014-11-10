@@ -25,21 +25,24 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.BlobCollector;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.IdRef;
-import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.pdf.PDFUtils;
 import org.nuxeo.pdf.PDFWatermarking;
 
 /**
  * Returns a <i>new</i> blob combining the input pdf and the image (stored in a
  * blob) referenced either by <code>imageContextVarName</code> (name of a
- * Context variable holding the blob) of by <code>imageDoc</code> (path or ID of
- * a document whose <code>file:content</code> is the image to use). If the value
- * of <code>scale</code> is <= 0 it is reset to 1.0.
+ * Context variable holding the blob) of by <code>imageDocRef</code> (path or ID
+ * of a document whose <code>file:content</code> is the image to use). If the
+ * value of <code>scale</code> is <= 0 it is reset to 1.0.
+ * <p>
+ * If code>imageDocRef</code> is used, an UnrestrictedSession fetches its blob,
+ * so the PDF can be watermarked even if current user has not enough right to
+ * read the watermark itself.
  *
  */
-@Operation(id = WatermarkWithImageOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Watermark with Image", description = "Returns a <i>new</i> blob combining the input pdf and the image (stored in a blob) referenced either by <code>imageContextVarName</code> (name of a Context variable holding the blob) of by <code>imageDoc</code> (path or ID of a document whose <code>file:content</code> is the image to use). If <code>scale</code> is <= 0 it is reste to 1.0")
+@Operation(id = WatermarkWithImageOp.ID, category = Constants.CAT_CONVERSION, label = "PDF: Watermark with Image", description = "Returns a <i>new</i> blob combining the input pdf and the image (stored in a blob) referenced either by <code>imageContextVarName</code> (name of a Context variable holding the blob) of by <code>imageDoc</code> (path or ID of a document whose <code>file:content</code> is the image to use). If <code>scale</code> is <= 0 it is reste to 1.0. If code>imageDocRef</code> is used, an UnrestrictedSession fetches its blob, so the PDF can be watermarked even if current user has not enough right to read the watermark itself.")
 public class WatermarkWithImageOp {
 
     public static final String ID = "PDF.WatermarkWithImage";
@@ -50,23 +53,23 @@ public class WatermarkWithImageOp {
     @Context
     protected OperationContext context;
 
-    @Param(name = "imageContextVarName", required = true)
-    String imageContextVarName;
+    @Param(name = "imageContextVarName", required = false)
+    String imageContextVarName = "";
 
     @Param(name = "imageDocRef", required = false)
-    String imageDocRef;
+    String imageDocRef = "";
 
     @Param(name = "x", required = false, values = { "0" })
-    protected long x;
+    protected long x = 0;
 
     @Param(name = "y", required = false, values = { "0" })
-    protected long y;
+    protected long y = 0;
 
     @Param(name = "scale", required = false, values = { "1.0" })
-    protected Double scale;
+    protected Double scale = 1.0;
 
     @OperationMethod(collector = BlobCollector.class)
-    public Blob run(Blob inBlob) {
+    public Blob run(Blob inBlob) throws ClientException {
 
         Blob result = null;
         Blob blobImage = null;
@@ -74,13 +77,12 @@ public class WatermarkWithImageOp {
         if (imageContextVarName != null && !imageContextVarName.isEmpty()) {
             blobImage = (Blob) context.get(imageContextVarName);
         } else if (imageDocRef != null && !imageDocRef.isEmpty()) {
-            DocumentModel doc = null;
-            if (imageDocRef.startsWith("/")) {
-                doc = session.getDocument(new PathRef(imageDocRef));
-            } else {
-                doc = session.getDocument(new IdRef(imageDocRef));
-            }
-            blobImage = (Blob) doc.getPropertyValue("file:content");
+
+            PDFUtils.TOTO_UnrestrictedGetBlobForDocumentIdOrPath r = new PDFUtils.TOTO_UnrestrictedGetBlobForDocumentIdOrPath(
+                    session, imageDocRef);
+            r.runUnrestricted();
+            blobImage = r.getBlob();
+
         }
 
         PDFWatermarking pdfw = new PDFWatermarking(inBlob);
