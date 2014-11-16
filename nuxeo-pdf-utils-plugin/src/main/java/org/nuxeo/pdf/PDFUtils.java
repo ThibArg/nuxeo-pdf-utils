@@ -141,7 +141,7 @@ public class PDFUtils {
         }
     }
 
-    public static class TOTO_UnrestrictedGetBlobForDocumentIdOrPath extends
+    public static class UnrestrictedGetBlobForDocumentIdOrPath extends
             UnrestrictedSessionRunner {
 
         protected String idOrPath;
@@ -152,7 +152,7 @@ public class PDFUtils {
 
         protected CoreSession session;
 
-        public TOTO_UnrestrictedGetBlobForDocumentIdOrPath(
+        public UnrestrictedGetBlobForDocumentIdOrPath(
                 CoreSession inSession, String inIdOrPath) {
             super(inSession);
 
