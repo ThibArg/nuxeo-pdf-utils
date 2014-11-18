@@ -78,7 +78,7 @@ public class WatermarkWithImageOp {
             blobImage = (Blob) context.get(imageContextVarName);
         } else if (imageDocRef != null && !imageDocRef.isEmpty()) {
 
-            PDFUtils.TOTO_UnrestrictedGetBlobForDocumentIdOrPath r = new PDFUtils.TOTO_UnrestrictedGetBlobForDocumentIdOrPath(
+            PDFUtils.UnrestrictedGetBlobForDocumentIdOrPath r = new PDFUtils.UnrestrictedGetBlobForDocumentIdOrPath(
                     session, imageDocRef);
             r.runUnrestricted();
             blobImage = r.getBlob();
