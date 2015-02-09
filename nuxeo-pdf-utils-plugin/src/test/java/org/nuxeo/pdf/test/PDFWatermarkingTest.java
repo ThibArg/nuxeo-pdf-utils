@@ -484,13 +484,13 @@ public class PDFWatermarkingTest {
 
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
-
+        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
         utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
                 "test-images-withOverlayPDF-operation.pdf");
 
         // checkHasImage(result, IMAGE_FOR_WATERMARK_PNG_WIDTH,
         // IMAGE_FOR_WATERMARK_PNG_HEIGHT);
-        if (kDO_LOCAL_TEST_EXPORT_DESKTOP) {
+
             utils.saveBlobOnDesktop(result, "nuxeo-pdfutils-test",
                     "test-images-withOverlayPNG-operation.pdf");
         }
