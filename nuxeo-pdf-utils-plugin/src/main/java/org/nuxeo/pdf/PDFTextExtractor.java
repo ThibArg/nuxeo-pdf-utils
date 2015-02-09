@@ -37,7 +37,7 @@ public class PDFTextExtractor {
 
     protected Blob pdfBlob;
 
-    protected String extractedString = null;
+    protected String extractedAllAsString = null;
 
     private static final String END_OF_LINE = "\n";
 
@@ -67,10 +67,10 @@ public class PDFTextExtractor {
         PDDocument pdfDoc = null;
         PDFTextStripper stripper = new PDFTextStripper();
 
-        if (extractedString == null) {
+        if (extractedAllAsString == null) {
             try {
                 pdfDoc = PDDocument.load(pdfBlob.getStream());
-                extractedString = stripper.getText(pdfDoc);
+                extractedAllAsString = stripper.getText(pdfDoc);
 
             } catch (IOException e) {
                 throw new ClientException(e);
@@ -85,22 +85,22 @@ public class PDFTextExtractor {
 
             }
         }
-        return extractedString;
+        return extractedAllAsString;
     }
 
-    public String extractLineOf(String inString) {
+    public String extractLineOf(String inString) throws IOException {
         String extractedLine = null;
-        int lineBegining = extractedString.indexOf(inString);
+        int lineBegining = getAllExtractedLines().indexOf(inString);
         int lineEnd;
         if (lineBegining != -1) {
-            lineEnd = extractedString.indexOf(END_OF_LINE, lineBegining);
-            extractedLine = extractedString.substring(lineBegining, lineEnd).trim();
+            lineEnd = getAllExtractedLines().indexOf(END_OF_LINE, lineBegining);
+            extractedLine = getAllExtractedLines().substring(lineBegining, lineEnd).trim();
         }
 
         return extractedLine;
     }
 
-    public String extractLAstPartOfLine(String string) {
+    public String extractLastPartOfLine(String string) throws IOException {
         String extractedLine = null;
         extractedLine = extractLineOf(string);
         if (extractedLine != null) {

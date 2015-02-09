@@ -4,6 +4,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Version: 1.0.qualifier
 Bundle-Name: nuxeo-pdf-utils-plugin
+Bundle-ManifestVersion: 2
 Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
  oFieldsOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.MergePDFsW
  ithBlobsInputOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.AddP
@@ -13,8 +14,7 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.pdf.operations.PDFInfoT
  rmarkWithTextOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wate
  rmarkWithImageOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Wat
  ermarkWithPDFOp.xml,OSGI-INF/extensions/org.nuxeo.pdf.operations.Extr
- actTextFromPDF.xml
-Bundle-ManifestVersion: 2
+ actTextFromPDFOp.xml
 Bundle-SymbolicName: nuxeo-pdf-utils-plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 
