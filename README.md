@@ -1,7 +1,13 @@
 # nuxeo-pdf-utils
 ===
 
+2015-04-27: WARNING: This repository has been moved to nuxeo-sandbox (https://github.com/nuxeo-sandbox/nuxeo-pdf-utils)
+
+This repository will not be maintained nor updated
+
 A set of utilities for who needs to deal with PDFs from a [nuxeo](http://nuxeo.com) application. The following operations are added:
+
+
 
 
 ## Operations
