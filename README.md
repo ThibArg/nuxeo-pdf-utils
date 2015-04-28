@@ -1,14 +1,11 @@
 # nuxeo-pdf-utils
 ===
 
-2015-04-27: WARNING: This repository has been moved to nuxeo-sandbox (https://github.com/nuxeo-sandbox/nuxeo-pdf-utils)
+## 2015-04-27: WARNING
+This repository has been moved to nuxeo-sandbox (https://github.com/nuxeo-sandbox/nuxeo-pdf-utils). _This repository will not be maintained nor updated_
 
-This repository will not be maintained nor updated
-
+## Introduction
 A set of utilities for who needs to deal with PDFs from a [nuxeo](http://nuxeo.com) application. The following operations are added:
-
-
-
 
 ## Operations
 These operations can be used in Studio after importing their JSON definitions to the Automation registry.
